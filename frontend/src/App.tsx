@@ -1,11 +1,13 @@
 /**
  * Cadence DJ System — Root App Component
  *
- * Assembles the dual-deck DJ interface.
+ * Assembles the dual-deck DJ interface with mixer controls.
  */
 
 import { useEngineState } from "./hooks/useEngineState";
 import { DeckPanel } from "./components/Deck/DeckPanel";
+import { Crossfader } from "./components/Mixer/Crossfader";
+import { MasterControls } from "./components/Mixer/MasterControls";
 
 export default function App() {
   const { state, error, refresh } = useEngineState();
@@ -63,7 +65,7 @@ export default function App() {
         )}
 
         {/* Dual Deck Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <DeckPanel
             deckId="A"
             label="Deck A"
@@ -80,21 +82,44 @@ export default function App() {
           />
         </div>
 
+        {/* ─── Mixer Section ─────────────────────────── */}
+        <div className="flex flex-col gap-3">
+          {/* Crossfader */}
+          <div className="flex justify-center">
+            <Crossfader
+              position={state?.mixer?.crossfader ?? 0.5}
+              onAction={refresh}
+            />
+          </div>
+
+          {/* Master Controls: Gain A, Master Vol, Curve, Gain B */}
+          <MasterControls mixer={state?.mixer ?? null} onAction={refresh} />
+        </div>
+
         {/* Engine Status Footer */}
         <footer
           className="flex items-center justify-center gap-6 py-2
                        text-xs text-text-muted border-t border-border"
         >
           <span>
-            Master Vol:{" "}
-            <span className="text-text-secondary font-mono">
-              {state ? Math.round(state.master_volume * 100) : "--"}%
+            Master:{" "}
+            <span className="text-accent-purple font-mono font-semibold">
+              {state?.mixer
+                ? Math.round(state.mixer.master_volume * 100)
+                : "--"}
+              %
             </span>
           </span>
           <span>
             Crossfader:{" "}
             <span className="text-text-secondary font-mono">
-              {state?.crossfader?.toFixed(2) ?? "--"}
+              {state?.mixer?.crossfader?.toFixed(2) ?? "--"}
+            </span>
+          </span>
+          <span>
+            Curve:{" "}
+            <span className="text-text-secondary">
+              {state?.mixer?.crossfader_curve ?? "--"}
             </span>
           </span>
           <span>

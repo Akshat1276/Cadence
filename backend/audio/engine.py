@@ -1,20 +1,21 @@
 """
 Cadence DJ System — Audio Engine
 
-Central audio engine that manages two decks, mixes their outputs,
-and drives the real-time audio output via sounddevice.
+Central audio engine that manages two decks, a mixer, and
+drives the real-time audio output via sounddevice.
 """
 
 import threading
 import numpy as np
 import sounddevice as sd
 from audio.deck import Deck
+from audio.mixer import Mixer
 from config import SAMPLE_RATE, CHANNELS, BLOCK_SIZE, DTYPE
 
 
 class AudioEngine:
     """
-    Singleton audio engine managing dual decks and real-time output.
+    Singleton audio engine managing dual decks, mixer, and real-time output.
     Uses sounddevice's OutputStream with a callback for low-latency playback.
     """
 
@@ -37,11 +38,8 @@ class AudioEngine:
         self.deck_a = Deck("A")
         self.deck_b = Deck("B")
 
-        # Master volume
-        self.master_volume: float = 0.8
-
-        # Crossfader: 0.0 = full A, 0.5 = center, 1.0 = full B
-        self.crossfader: float = 0.5
+        # Initialize mixer
+        self.mixer = Mixer()
 
         # Audio output stream
         self._stream: sd.OutputStream | None = None
@@ -51,28 +49,17 @@ class AudioEngine:
                         time_info, status) -> None:
         """
         Real-time audio callback invoked by sounddevice.
-        Mixes both decks and writes to the output buffer.
+        Gets frames from both decks and delegates mixing to the Mixer.
         """
         if status:
             print(f"[AudioEngine] Stream status: {status}")
 
-        # Get frames from both decks
+        # Get raw frames from both decks (volume already applied per-deck)
         frames_a = self.deck_a.get_frames(frames)
         frames_b = self.deck_b.get_frames(frames)
 
-        # Apply crossfader
-        # crossfader=0.0 → full A, crossfader=1.0 → full B
-        gain_a = 1.0 - self.crossfader
-        gain_b = self.crossfader
-
-        # Mix
-        mixed = (frames_a * gain_a) + (frames_b * gain_b)
-
-        # Apply master volume
-        mixed *= self.master_volume
-
-        # Clip to prevent distortion
-        np.clip(mixed, -1.0, 1.0, out=mixed)
+        # Delegate all mixing to the Mixer (gain trim → crossfader → master vol → clip)
+        mixed = self.mixer.mix(frames_a, frames_b)
 
         # Write to output
         outdata[:] = mixed
@@ -118,7 +105,6 @@ class AudioEngine:
         return {
             "deck_a": self.deck_a.get_status(),
             "deck_b": self.deck_b.get_status(),
-            "master_volume": round(self.master_volume, 2),
-            "crossfader": round(self.crossfader, 2),
+            "mixer": self.mixer.get_state(),
             "running": self._running,
         }

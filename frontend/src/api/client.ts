@@ -11,7 +11,7 @@ const api = axios.create({
   timeout: 30000,
 });
 
-// ─── Deck API ──────────────────────────────────────────
+// ─── Types ─────────────────────────────────────────────
 
 export interface DeckStatus {
   deck_id: string;
@@ -23,13 +23,22 @@ export interface DeckStatus {
   file_path: string;
 }
 
+export interface MixerState {
+  crossfader: number;
+  master_volume: number;
+  gain_a_db: number;
+  gain_b_db: number;
+  crossfader_curve: string;
+}
+
 export interface EngineState {
   deck_a: DeckStatus;
   deck_b: DeckStatus;
-  master_volume: number;
-  crossfader: number;
+  mixer: MixerState;
   running: boolean;
 }
+
+// ─── Deck API ──────────────────────────────────────────
 
 export async function loadTrack(
   deckId: string,
@@ -78,6 +87,38 @@ export async function getDeckStatus(deckId: string): Promise<DeckStatus> {
   const res = await api.get(`/deck/${deckId}/status`);
   return res.data.deck;
 }
+
+// ─── Mixer API ─────────────────────────────────────────
+
+export async function setCrossfader(position: number): Promise<MixerState> {
+  const res = await api.post("/mixer/crossfader", { position });
+  return res.data.mixer;
+}
+
+export async function setMasterVolume(volume: number): Promise<MixerState> {
+  const res = await api.post("/mixer/master-volume", { volume });
+  return res.data.mixer;
+}
+
+export async function setGain(
+  deckId: string,
+  gain_db: number
+): Promise<MixerState> {
+  const res = await api.post(`/mixer/gain/${deckId}`, { gain_db });
+  return res.data.mixer;
+}
+
+export async function setCrossfaderCurve(curve: string): Promise<MixerState> {
+  const res = await api.post("/mixer/crossfader-curve", { curve });
+  return res.data.mixer;
+}
+
+export async function getMixerState(): Promise<MixerState> {
+  const res = await api.get("/mixer/state");
+  return res.data.mixer;
+}
+
+// ─── Engine API ────────────────────────────────────────
 
 export async function getEngineState(): Promise<EngineState> {
   const res = await api.get(`/engine/state`);

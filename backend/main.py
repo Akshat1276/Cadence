@@ -11,6 +11,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from audio.engine import AudioEngine
 from api.deck_routes import router as deck_router
+from api.mixer_routes import router as mixer_router
 from config import UPLOAD_DIR, DATA_DIR, EXPORT_DIR
 
 
@@ -51,6 +52,7 @@ app.add_middleware(
 
 # Mount API routers
 app.include_router(deck_router)
+app.include_router(mixer_router)
 
 
 @app.get("/api/health")
