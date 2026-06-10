@@ -1,16 +1,19 @@
 /**
  * Cadence DJ System — Root App Component
  *
- * Assembles the dual-deck DJ interface with mixer controls.
+ * Assembles the full DJ interface: dual decks, mixer,
+ * playback monitor, and track library.
  */
 
 import { useEngineState } from "./hooks/useEngineState";
 import { DeckPanel } from "./components/Deck/DeckPanel";
 import { Crossfader } from "./components/Mixer/Crossfader";
 import { MasterControls } from "./components/Mixer/MasterControls";
+import { PlaybackInfo } from "./components/Monitor/PlaybackInfo";
+import { TrackList } from "./components/Library/TrackList";
 
 export default function App() {
-  const { state, error, refresh } = useEngineState();
+  const { state, error, connected, refresh } = useEngineState();
 
   return (
     <div className="h-full flex flex-col bg-bg-primary">
@@ -36,17 +39,25 @@ export default function App() {
         <div className="flex items-center gap-2">
           <span
             className={`w-2 h-2 rounded-full ${
-              error ? "bg-accent-magenta" : "bg-accent-green"
+              error
+                ? "bg-accent-magenta"
+                : connected
+                  ? "bg-accent-green"
+                  : "bg-accent-yellow"
             }`}
           />
           <span className="text-xs text-text-muted">
-            {error ? "Disconnected" : "Connected"}
+            {error
+              ? "Disconnected"
+              : connected
+                ? "Live"
+                : "Connecting..."}
           </span>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col p-4 gap-4 overflow-auto">
+      <main className="flex-1 flex flex-col p-4 gap-3 overflow-auto">
         {/* Error Banner */}
         {error && (
           <div
@@ -64,8 +75,14 @@ export default function App() {
           </div>
         )}
 
-        {/* Dual Deck Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* ─── Playback Monitor ──────────────────────── */}
+        <PlaybackInfo
+          deckA={state?.deck_a ?? null}
+          deckB={state?.deck_b ?? null}
+        />
+
+        {/* ─── Dual Deck Layout ──────────────────────── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <DeckPanel
             deckId="A"
             label="Deck A"
@@ -84,17 +101,17 @@ export default function App() {
 
         {/* ─── Mixer Section ─────────────────────────── */}
         <div className="flex flex-col gap-3">
-          {/* Crossfader */}
           <div className="flex justify-center">
             <Crossfader
               position={state?.mixer?.crossfader ?? 0.5}
               onAction={refresh}
             />
           </div>
-
-          {/* Master Controls: Gain A, Master Vol, Curve, Gain B */}
           <MasterControls mixer={state?.mixer ?? null} onAction={refresh} />
         </div>
+
+        {/* ─── Track Library ─────────────────────────── */}
+        <TrackList engineState={state} onAction={refresh} />
 
         {/* Engine Status Footer */}
         <footer
