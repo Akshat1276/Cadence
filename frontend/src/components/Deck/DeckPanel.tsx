@@ -1,14 +1,15 @@
 /**
  * Cadence DJ System — Deck Panel Component
  *
- * Full deck UI: track info, file loader, transport controls,
- * volume slider, and seek bar.
+ * Full deck UI: waveform display, track info, file loader,
+ * transport controls, volume slider, and seek bar.
  */
 
 import { useRef } from "react";
 import type { DeckStatus } from "../../api/client";
 import { loadTrack, seekDeck, setDeckVolume } from "../../api/client";
 import { TransportControls } from "./TransportControls";
+import { WaveformDisplay } from "../Waveform/WaveformDisplay";
 
 interface DeckPanelProps {
   deckId: string;
@@ -63,7 +64,7 @@ export function DeckPanel({
 
   return (
     <div
-      className="flex flex-col gap-3 p-4 rounded-xl bg-bg-panel border border-border
+      className="flex flex-col gap-2 p-3 rounded-xl bg-bg-panel border border-border
                     hover:border-border-active transition-colors duration-300"
     >
       {/* Header: Label + Load Button */}
@@ -109,7 +110,7 @@ export function DeckPanel({
       </div>
 
       {/* Track Info */}
-      <div className="min-h-[2rem] flex items-center">
+      <div className="min-h-[1.25rem] flex items-center">
         {isEmpty ? (
           <span className="text-text-muted text-sm italic">
             No track loaded
@@ -121,8 +122,16 @@ export function DeckPanel({
         )}
       </div>
 
+      {/* Waveform Display */}
+      <WaveformDisplay
+        deckId={deckId}
+        status={status}
+        accentColor={accentColor}
+        onAction={onAction}
+      />
+
       {/* Seek Bar */}
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-0.5">
         <input
           id={`deck-${deckId}-seek`}
           type="range"

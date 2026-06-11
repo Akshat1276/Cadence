@@ -2,14 +2,15 @@
 Cadence DJ System — Deck API Routes
 
 REST endpoints for controlling deck playback:
-load, play, pause, stop, seek, and status.
+load, play, pause, stop, seek, status, and waveform data.
 """
 
 import os
 import shutil
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException
+from fastapi import APIRouter, UploadFile, File, Form, Query, HTTPException
 from pydantic import BaseModel
 from audio.engine import AudioEngine
+from audio.waveform import generate_waveform_peaks, generate_zoomed_waveform
 from config import UPLOAD_DIR
 
 router = APIRouter(prefix="/api/deck", tags=["deck"])
@@ -141,3 +142,40 @@ async def get_deck_status(deck_id: str):
         raise HTTPException(status_code=400, detail=str(e))
 
     return {"status": "ok", "deck": deck.get_status()}
+
+
+@router.get("/{deck_id}/waveform")
+async def get_waveform(
+    deck_id: str,
+    start: float = Query(None, description="Zoom start time in seconds"),
+    end: float = Query(None, description="Zoom end time in seconds"),
+    peaks: int = Query(None, description="Number of peaks to generate"),
+):
+    """
+    Get waveform peak data for visualization.
+    Without start/end params: returns full track overview.
+    With start/end params: returns zoomed region.
+    """
+    engine = AudioEngine()
+    try:
+        deck = engine.get_deck(deck_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    if deck.audio_data is None:
+        raise HTTPException(status_code=400, detail="No track loaded on this deck")
+
+    if start is not None and end is not None:
+        # Zoomed waveform
+        waveform = generate_zoomed_waveform(
+            deck.audio_data, start, end,
+            num_peaks=peaks or 1800
+        )
+    else:
+        # Full overview
+        waveform = generate_waveform_peaks(
+            deck.audio_data,
+            num_peaks=peaks or 1800
+        )
+
+    return {"status": "ok", "waveform": waveform}

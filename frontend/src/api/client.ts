@@ -31,10 +31,37 @@ export interface MixerState {
   crossfader_curve: string;
 }
 
+export interface PeakLevels {
+  peak_l: number;
+  peak_r: number;
+  rms_l: number;
+  rms_r: number;
+  peak_db_l: number;
+  peak_db_r: number;
+  rms_db_l: number;
+  rms_db_r: number;
+}
+
+export interface LevelsState {
+  deck_a: PeakLevels;
+  deck_b: PeakLevels;
+  master: PeakLevels;
+}
+
+export interface WaveformData {
+  peaks_positive: number[];
+  peaks_negative: number[];
+  length: number;
+  duration?: number;
+  start?: number;
+  end?: number;
+}
+
 export interface EngineState {
   deck_a: DeckStatus;
   deck_b: DeckStatus;
   mixer: MixerState;
+  levels: LevelsState;
   running: boolean;
 }
 
@@ -86,6 +113,20 @@ export async function setDeckVolume(
 export async function getDeckStatus(deckId: string): Promise<DeckStatus> {
   const res = await api.get(`/deck/${deckId}/status`);
   return res.data.deck;
+}
+
+export async function getWaveform(
+  deckId: string,
+  start?: number,
+  end?: number,
+  peaks?: number
+): Promise<WaveformData> {
+  const params: Record<string, number> = {};
+  if (start !== undefined) params.start = start;
+  if (end !== undefined) params.end = end;
+  if (peaks !== undefined) params.peaks = peaks;
+  const res = await api.get(`/deck/${deckId}/waveform`, { params });
+  return res.data.waveform;
 }
 
 // ─── Mixer API ─────────────────────────────────────────

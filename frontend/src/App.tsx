@@ -11,6 +11,7 @@ import { Crossfader } from "./components/Mixer/Crossfader";
 import { MasterControls } from "./components/Mixer/MasterControls";
 import { PlaybackInfo } from "./components/Monitor/PlaybackInfo";
 import { TrackList } from "./components/Library/TrackList";
+import { PeakMeter } from "./components/Meter/PeakMeter";
 
 export default function App() {
   const { state, error, connected, refresh } = useEngineState();
@@ -99,15 +100,39 @@ export default function App() {
           />
         </div>
 
-        {/* ─── Mixer Section ─────────────────────────── */}
-        <div className="flex flex-col gap-3">
-          <div className="flex justify-center">
-            <Crossfader
-              position={state?.mixer?.crossfader ?? 0.5}
-              onAction={refresh}
-            />
+        {/* ─── Mixer + Meters Section ────────────────── */}
+        <div className="flex items-stretch gap-3">
+          {/* Deck A Meter */}
+          <PeakMeter
+            levels={state?.levels?.deck_a ?? null}
+            label="A"
+            height={80}
+          />
+
+          {/* Mixer Controls */}
+          <div className="flex-1 flex flex-col gap-3">
+            <div className="flex justify-center">
+              <Crossfader
+                position={state?.mixer?.crossfader ?? 0.5}
+                onAction={refresh}
+              />
+            </div>
+            <MasterControls mixer={state?.mixer ?? null} onAction={refresh} />
           </div>
-          <MasterControls mixer={state?.mixer ?? null} onAction={refresh} />
+
+          {/* Master Meter */}
+          <PeakMeter
+            levels={state?.levels?.master ?? null}
+            label="MST"
+            height={80}
+          />
+
+          {/* Deck B Meter */}
+          <PeakMeter
+            levels={state?.levels?.deck_b ?? null}
+            label="B"
+            height={80}
+          />
         </div>
 
         {/* ─── Track Library ─────────────────────────── */}

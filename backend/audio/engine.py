@@ -3,6 +3,7 @@ Cadence DJ System — Audio Engine
 
 Central audio engine that manages two decks, a mixer, and
 drives the real-time audio output via sounddevice.
+Computes peak metering levels in the audio callback.
 """
 
 import threading
@@ -10,6 +11,7 @@ import numpy as np
 import sounddevice as sd
 from audio.deck import Deck
 from audio.mixer import Mixer
+from audio.metering import compute_peak_levels
 from config import SAMPLE_RATE, CHANNELS, BLOCK_SIZE, DTYPE
 
 
@@ -45,11 +47,16 @@ class AudioEngine:
         self._stream: sd.OutputStream | None = None
         self._running = False
 
+        # Peak metering state (updated in audio callback)
+        self.levels_a: dict = {}
+        self.levels_b: dict = {}
+        self.levels_master: dict = {}
+
     def _audio_callback(self, outdata: np.ndarray, frames: int,
                         time_info, status) -> None:
         """
         Real-time audio callback invoked by sounddevice.
-        Gets frames from both decks and delegates mixing to the Mixer.
+        Gets frames from both decks, mixes them, computes peak levels.
         """
         if status:
             print(f"[AudioEngine] Stream status: {status}")
@@ -58,8 +65,15 @@ class AudioEngine:
         frames_a = self.deck_a.get_frames(frames)
         frames_b = self.deck_b.get_frames(frames)
 
-        # Delegate all mixing to the Mixer (gain trim → crossfader → master vol → clip)
+        # Compute per-deck peak levels (before mixing)
+        self.levels_a = compute_peak_levels(frames_a)
+        self.levels_b = compute_peak_levels(frames_b)
+
+        # Delegate all mixing to the Mixer
         mixed = self.mixer.mix(frames_a, frames_b)
+
+        # Compute master output levels (after mixing)
+        self.levels_master = compute_peak_levels(mixed)
 
         # Write to output
         outdata[:] = mixed
@@ -106,5 +120,10 @@ class AudioEngine:
             "deck_a": self.deck_a.get_status(),
             "deck_b": self.deck_b.get_status(),
             "mixer": self.mixer.get_state(),
+            "levels": {
+                "deck_a": self.levels_a,
+                "deck_b": self.levels_b,
+                "master": self.levels_master,
+            },
             "running": self._running,
         }
