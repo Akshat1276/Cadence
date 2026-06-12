@@ -3,12 +3,15 @@ Cadence DJ System — Deck Module
 
 Each Deck represents an independent audio player that holds a loaded track,
 manages playback state, and provides audio frames on demand.
+Includes per-deck 3-band EQ and effects chain processing.
 """
 
 import threading
 import numpy as np
 from enum import Enum
 from audio.loader import load_audio_file_stereo
+from audio.eq import ThreeBandEQ
+from audio.effects import EffectsChain
 from config import SAMPLE_RATE, CHANNELS
 
 
@@ -23,6 +26,7 @@ class Deck:
     """
     A single DJ deck that can load, play, pause, and seek through an audio track.
     Audio frames are read by the engine's audio callback.
+    Includes EQ and effects processing applied before output.
     """
 
     def __init__(self, deck_id: str):
@@ -45,6 +49,12 @@ class Deck:
         # Volume (0.0 to 1.0)
         self.volume: float = 1.0
 
+        # Per-deck EQ
+        self.eq = ThreeBandEQ(SAMPLE_RATE)
+
+        # Per-deck effects chain
+        self.effects = EffectsChain(SAMPLE_RATE)
+
     def load_track(self, file_path: str, track_name: str = "") -> dict:
         """Load an audio file into this deck."""
         with self._lock:
@@ -56,6 +66,10 @@ class Deck:
             self.file_path = file_path
             self.track_name = track_name or file_path.split("\\")[-1].split("/")[-1]
             self.state = DeckState.LOADED
+            # Reset EQ filter state for new track
+            self.eq.low.reset_state()
+            self.eq.mid.reset_state()
+            self.eq.high.reset_state()
             return self.get_status()
 
     def play(self) -> dict:
@@ -92,6 +106,13 @@ class Deck:
         """
         Read the next chunk of audio frames from this deck.
         Called by the audio engine in the real-time callback.
+
+        Processing chain:
+            1. Read raw audio from buffer
+            2. Apply volume
+            3. Apply 3-band EQ
+            4. Apply effects chain (filter → reverb → delay → flanger → bitcrusher)
+
         Returns a numpy array of shape (num_frames, channels).
         """
         output = np.zeros((num_frames, CHANNELS), dtype=np.float32)
@@ -111,8 +132,14 @@ class Deck:
             output[:frames_to_read] = self.audio_data[self.cursor:self.cursor + frames_to_read]
             self.cursor += frames_to_read
 
-            # Apply volume
+            # 1. Apply volume
             output *= self.volume
+
+            # 2. Apply 3-band EQ
+            output = self.eq.process(output)
+
+            # 3. Apply effects chain
+            output = self.effects.process(output)
 
         return output
 
@@ -132,4 +159,6 @@ class Deck:
             "duration": round(self.duration, 2),
             "volume": round(self.volume, 2),
             "file_path": self.file_path,
+            "eq": self.eq.get_state(),
+            "effects": self.effects.get_state(),
         }

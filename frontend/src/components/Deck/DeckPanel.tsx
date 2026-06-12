@@ -10,6 +10,8 @@ import type { DeckStatus } from "../../api/client";
 import { loadTrack, seekDeck, setDeckVolume } from "../../api/client";
 import { TransportControls } from "./TransportControls";
 import { WaveformDisplay } from "../Waveform/WaveformDisplay";
+import { EQControls } from "../EQ/EQControls";
+import { EffectsPanel } from "../Effects/EffectsPanel";
 
 interface DeckPanelProps {
   deckId: string;
@@ -185,6 +187,24 @@ export function DeckPanel({
           <span className="text-xs font-mono text-text-muted w-8 text-right">
             {Math.round(volume * 100)}
           </span>
+        </div>
+      </div>
+
+      {/* EQ + Effects Row */}
+      <div className="flex items-start gap-2">
+        <EQControls
+          deckId={deckId}
+          eq={status?.eq ?? null}
+          accentColor={accentColor}
+          onAction={onAction}
+        />
+        <div className="flex-1">
+          <EffectsPanel
+            deckId={deckId}
+            effects={status?.effects ?? null}
+            accentColor={accentColor}
+            onAction={onAction}
+          />
         </div>
       </div>
     </div>

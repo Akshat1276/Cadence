@@ -21,6 +21,57 @@ export interface DeckStatus {
   duration: number;
   volume: number;
   file_path: string;
+  eq: EQState;
+  effects: EffectsState;
+}
+
+export interface EQState {
+  enabled: boolean;
+  low_db: number;
+  mid_db: number;
+  high_db: number;
+}
+
+export interface FilterState {
+  enabled: boolean;
+  type: string;
+  cutoff: number;
+  resonance: number;
+}
+
+export interface ReverbState {
+  enabled: boolean;
+  mix: number;
+  decay: number;
+  room_size: number;
+}
+
+export interface DelayState {
+  enabled: boolean;
+  time_ms: number;
+  feedback: number;
+  mix: number;
+}
+
+export interface FlangerState {
+  enabled: boolean;
+  rate: number;
+  depth: number;
+  mix: number;
+}
+
+export interface BitcrusherState {
+  enabled: boolean;
+  bit_depth: number;
+  downsample: number;
+}
+
+export interface EffectsState {
+  filter: FilterState;
+  reverb: ReverbState;
+  delay: DelayState;
+  flanger: FlangerState;
+  bitcrusher: BitcrusherState;
 }
 
 export interface MixerState {
@@ -157,6 +208,72 @@ export async function setCrossfaderCurve(curve: string): Promise<MixerState> {
 export async function getMixerState(): Promise<MixerState> {
   const res = await api.get("/mixer/state");
   return res.data.mixer;
+}
+
+// ─── EQ & Effects API ──────────────────────────────────
+
+export async function setEQ(
+  deckId: string,
+  low_db: number,
+  mid_db: number,
+  high_db: number
+): Promise<EQState> {
+  const res = await api.post(`/effects/${deckId}/eq`, { low_db, mid_db, high_db });
+  return res.data.eq;
+}
+
+export async function setEQBand(
+  deckId: string,
+  band: "low" | "mid" | "high",
+  gain_db: number
+): Promise<EQState> {
+  const res = await api.post(`/effects/${deckId}/eq/${band}`, { gain_db });
+  return res.data.eq;
+}
+
+export async function resetEQ(deckId: string): Promise<EQState> {
+  const res = await api.post(`/effects/${deckId}/eq/reset`);
+  return res.data.eq;
+}
+
+export async function setFilter(
+  deckId: string,
+  params: { enabled: boolean; filter_type: string; cutoff: number }
+): Promise<FilterState> {
+  const res = await api.post(`/effects/${deckId}/filter`, params);
+  return res.data.filter;
+}
+
+export async function setReverb(
+  deckId: string,
+  params: { enabled: boolean; mix: number; decay: number; room_size: number }
+): Promise<ReverbState> {
+  const res = await api.post(`/effects/${deckId}/reverb`, params);
+  return res.data.reverb;
+}
+
+export async function setDelay(
+  deckId: string,
+  params: { enabled: boolean; time_ms: number; feedback: number; mix: number }
+): Promise<DelayState> {
+  const res = await api.post(`/effects/${deckId}/delay`, params);
+  return res.data.delay;
+}
+
+export async function setFlanger(
+  deckId: string,
+  params: { enabled: boolean; rate: number; depth: number; mix: number }
+): Promise<FlangerState> {
+  const res = await api.post(`/effects/${deckId}/flanger`, params);
+  return res.data.flanger;
+}
+
+export async function setBitcrusher(
+  deckId: string,
+  params: { enabled: boolean; bit_depth: number; downsample: number }
+): Promise<BitcrusherState> {
+  const res = await api.post(`/effects/${deckId}/bitcrusher`, params);
+  return res.data.bitcrusher;
 }
 
 // ─── Engine API ────────────────────────────────────────
