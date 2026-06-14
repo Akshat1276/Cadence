@@ -12,6 +12,8 @@ import { TransportControls } from "./TransportControls";
 import { WaveformDisplay } from "../Waveform/WaveformDisplay";
 import { EQControls } from "../EQ/EQControls";
 import { EffectsPanel } from "../Effects/EffectsPanel";
+import { HotCues } from "../Cue/HotCues";
+import { LoopControls } from "../Cue/LoopControls";
 
 interface DeckPanelProps {
   deckId: string;
@@ -188,6 +190,21 @@ export function DeckPanel({
             {Math.round(volume * 100)}
           </span>
         </div>
+      </div>
+
+      {/* Hot Cues + Loop Controls */}
+      <div className="flex items-start gap-3">
+        <HotCues
+          deckId={deckId}
+          cuePoints={status?.cue_points ?? []}
+          onAction={onAction}
+        />
+        <LoopControls
+          deckId={deckId}
+          loop={status?.loop ?? null}
+          accentColor={accentColor}
+          onAction={onAction}
+        />
       </div>
 
       {/* EQ + Effects Row */}

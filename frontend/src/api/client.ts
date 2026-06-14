@@ -13,6 +13,21 @@ const api = axios.create({
 
 // ─── Types ─────────────────────────────────────────────
 
+export interface CuePoint {
+  slot: number;
+  position: number;
+  name: string;
+  color: string;
+}
+
+export interface LoopState {
+  enabled: boolean;
+  in_point: number;
+  out_point: number;
+  length: number;
+  is_valid: boolean;
+}
+
 export interface DeckStatus {
   deck_id: string;
   state: "empty" | "loaded" | "playing" | "paused";
@@ -23,6 +38,8 @@ export interface DeckStatus {
   file_path: string;
   eq: EQState;
   effects: EffectsState;
+  cue_points: CuePoint[];
+  loop: LoopState;
 }
 
 export interface EQState {
@@ -274,6 +291,77 @@ export async function setBitcrusher(
 ): Promise<BitcrusherState> {
   const res = await api.post(`/effects/${deckId}/bitcrusher`, params);
   return res.data.bitcrusher;
+}
+
+// ─── Cue & Loop API ────────────────────────────────────
+
+export async function setCuePoint(
+  deckId: string,
+  slot: number,
+  position?: number,
+  name?: string
+): Promise<DeckStatus> {
+  const body: Record<string, unknown> = {};
+  if (position !== undefined) body.position = position;
+  if (name !== undefined) body.name = name;
+  const res = await api.post(`/deck/${deckId}/cue/${slot}`, body);
+  return res.data.deck;
+}
+
+export async function deleteCuePoint(
+  deckId: string,
+  slot: number
+): Promise<DeckStatus> {
+  const res = await api.delete(`/deck/${deckId}/cue/${slot}`);
+  return res.data.deck;
+}
+
+export async function jumpToCue(
+  deckId: string,
+  slot: number
+): Promise<DeckStatus> {
+  const res = await api.post(`/deck/${deckId}/cue/${slot}/jump`);
+  return res.data.deck;
+}
+
+export async function setLoopIn(
+  deckId: string,
+  position?: number
+): Promise<DeckStatus> {
+  const res = await api.post(`/deck/${deckId}/loop/in`, {
+    position: position ?? null,
+  });
+  return res.data.deck;
+}
+
+export async function setLoopOut(
+  deckId: string,
+  position?: number
+): Promise<DeckStatus> {
+  const res = await api.post(`/deck/${deckId}/loop/out`, {
+    position: position ?? null,
+  });
+  return res.data.deck;
+}
+
+export async function toggleLoop(deckId: string): Promise<DeckStatus> {
+  const res = await api.post(`/deck/${deckId}/loop/toggle`);
+  return res.data.deck;
+}
+
+export async function clearLoop(deckId: string): Promise<DeckStatus> {
+  const res = await api.post(`/deck/${deckId}/loop/clear`);
+  return res.data.deck;
+}
+
+export async function halveLoop(deckId: string): Promise<DeckStatus> {
+  const res = await api.post(`/deck/${deckId}/loop/halve`);
+  return res.data.deck;
+}
+
+export async function doubleLoop(deckId: string): Promise<DeckStatus> {
+  const res = await api.post(`/deck/${deckId}/loop/double`);
+  return res.data.deck;
 }
 
 // ─── Engine API ────────────────────────────────────────

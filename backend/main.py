@@ -15,6 +15,7 @@ from api.mixer_routes import router as mixer_router
 from api.library_routes import router as library_router
 from api.ws_routes import router as ws_router
 from api.effects_routes import router as effects_router
+from api.cue_routes import router as cue_router
 from config import UPLOAD_DIR, DATA_DIR, EXPORT_DIR
 
 
@@ -59,6 +60,7 @@ app.include_router(mixer_router)
 app.include_router(library_router)
 app.include_router(ws_router)
 app.include_router(effects_router)
+app.include_router(cue_router)
 
 
 @app.get("/api/health")
