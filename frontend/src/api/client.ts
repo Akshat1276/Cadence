@@ -28,6 +28,12 @@ export interface LoopState {
   is_valid: boolean;
 }
 
+export interface TempoState {
+  speed: number;
+  original_bpm: number;
+  effective_bpm: number;
+}
+
 export interface DeckStatus {
   deck_id: string;
   state: "empty" | "loaded" | "playing" | "paused";
@@ -40,6 +46,9 @@ export interface DeckStatus {
   effects: EffectsState;
   cue_points: CuePoint[];
   loop: LoopState;
+  bpm: number;
+  beat_count: number;
+  tempo: TempoState;
 }
 
 export interface EQState {
@@ -362,6 +371,43 @@ export async function halveLoop(deckId: string): Promise<DeckStatus> {
 export async function doubleLoop(deckId: string): Promise<DeckStatus> {
   const res = await api.post(`/deck/${deckId}/loop/double`);
   return res.data.deck;
+}
+
+// ─── Tempo & Sync API ──────────────────────────────────
+
+export async function setSpeed(
+  deckId: string,
+  speed: number
+): Promise<TempoState> {
+  const res = await api.post(`/deck/${deckId}/tempo/speed`, { speed });
+  return res.data.tempo;
+}
+
+export async function nudgeSpeed(
+  deckId: string,
+  amount: number
+): Promise<TempoState> {
+  const res = await api.post(`/deck/${deckId}/tempo/nudge`, { amount });
+  return res.data.tempo;
+}
+
+export async function resetSpeed(deckId: string): Promise<TempoState> {
+  const res = await api.post(`/deck/${deckId}/tempo/reset`);
+  return res.data.tempo;
+}
+
+export async function syncDeck(deckId: string): Promise<Record<string, unknown>> {
+  const res = await api.post(`/deck/${deckId}/sync`);
+  return res.data;
+}
+
+export async function getBeats(deckId: string): Promise<{
+  beat_times: number[];
+  downbeat_times: number[];
+  bpm: number;
+}> {
+  const res = await api.get(`/deck/${deckId}/beats`);
+  return res.data;
 }
 
 // ─── Engine API ────────────────────────────────────────

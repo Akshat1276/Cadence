@@ -14,6 +14,7 @@ import { EQControls } from "../EQ/EQControls";
 import { EffectsPanel } from "../Effects/EffectsPanel";
 import { HotCues } from "../Cue/HotCues";
 import { LoopControls } from "../Cue/LoopControls";
+import { TempoSync } from "../Sync/TempoSync";
 
 interface DeckPanelProps {
   deckId: string;
@@ -206,6 +207,14 @@ export function DeckPanel({
           onAction={onAction}
         />
       </div>
+
+      {/* Tempo & Sync */}
+      <TempoSync
+        deckId={deckId}
+        status={status}
+        accentColor={accentColor}
+        onAction={onAction}
+      />
 
       {/* EQ + Effects Row */}
       <div className="flex items-start gap-2">

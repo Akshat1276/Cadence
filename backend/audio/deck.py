@@ -12,6 +12,8 @@ from enum import Enum
 from audio.loader import load_audio_file_stereo
 from audio.eq import ThreeBandEQ
 from audio.effects import EffectsChain
+from audio.bpm import detect_bpm
+from audio.tempo import TempoController
 from config import SAMPLE_RATE, CHANNELS
 
 # Maximum number of hot cue slots per deck
@@ -135,6 +137,13 @@ class Deck:
         # Loop
         self.loop = Loop()
 
+        # BPM / Beat detection
+        self.beat_info: dict = {"bpm": 0.0, "beat_times": [], "beat_count": 0,
+                                "downbeat_times": []}
+
+        # Tempo controller (playback speed)
+        self.tempo = TempoController()
+
     def load_track(self, file_path: str, track_name: str = "") -> dict:
         """Load an audio file into this deck."""
         with self._lock:
@@ -153,7 +162,20 @@ class Deck:
             # Clear cue points and loop for new track
             self.cue_points.clear()
             self.loop = Loop()
-            return self.get_status()
+            # Reset tempo
+            self.tempo.reset()
+
+        # Detect BPM (outside lock — can be slow)
+        try:
+            self.beat_info = detect_bpm(audio_data)
+            self.tempo.original_bpm = self.beat_info["bpm"]
+            print(f"[Deck {self.deck_id}] BPM detected: {self.beat_info['bpm']}")
+        except Exception as e:
+            print(f"[Deck {self.deck_id}] BPM detection failed: {e}")
+            self.beat_info = {"bpm": 0.0, "beat_times": [], "beat_count": 0,
+                              "downbeat_times": []}
+
+        return self.get_status()
 
     def play(self) -> dict:
         """Start or resume playback."""
@@ -263,10 +285,11 @@ class Deck:
         Called by the audio engine in the real-time callback.
 
         Processing chain:
-            1. Read raw audio from buffer (with loop handling)
-            2. Apply volume
-            3. Apply 3-band EQ
-            4. Apply effects chain
+            1. Read raw audio from buffer (with loop + tempo handling)
+            2. Resample if speed != 1.0
+            3. Apply volume
+            4. Apply 3-band EQ
+            5. Apply effects chain
 
         Returns a numpy array of shape (num_frames, channels).
         """
@@ -276,21 +299,27 @@ class Deck:
             return output
 
         with self._lock:
-            # Handle looping: if loop is enabled and cursor reaches out-point,
-            # wrap back to in-point
+            # Calculate how many source frames to read for this speed
+            speed = self.tempo.speed
+            if abs(speed - 1.0) > 0.001:
+                source_frames_needed, new_acc = self.tempo.compute_read_frames(num_frames)
+            else:
+                source_frames_needed = num_frames
+                new_acc = 0.0
+
+            # Read source frames (with loop handling)
+            raw = np.zeros((source_frames_needed, CHANNELS), dtype=np.float32)
+
             if self.loop.enabled and self.loop.is_valid:
                 frames_written = 0
-                while frames_written < num_frames:
-                    # Check if cursor is past loop out-point
+                while frames_written < source_frames_needed:
                     if self.cursor >= self.loop.out_frame:
                         self.cursor = self.loop.in_frame
 
-                    # Calculate how many frames until loop out-point
                     frames_until_loop_end = self.loop.out_frame - self.cursor
-                    frames_needed = num_frames - frames_written
+                    frames_needed = source_frames_needed - frames_written
                     frames_to_read = min(frames_needed, frames_until_loop_end)
 
-                    # Also clamp to total track length
                     remaining = self.total_frames - self.cursor
                     if remaining <= 0:
                         self.cursor = self.loop.in_frame
@@ -298,21 +327,27 @@ class Deck:
                     frames_to_read = min(frames_to_read, remaining)
 
                     if frames_to_read > 0:
-                        output[frames_written:frames_written + frames_to_read] = \
+                        raw[frames_written:frames_written + frames_to_read] = \
                             self.audio_data[self.cursor:self.cursor + frames_to_read]
                         self.cursor += frames_to_read
                         frames_written += frames_to_read
             else:
-                # Normal playback (no loop)
                 remaining = self.total_frames - self.cursor
                 if remaining <= 0:
                     self.state = DeckState.LOADED
                     self.cursor = 0
                     return output
 
-                frames_to_read = min(num_frames, remaining)
-                output[:frames_to_read] = self.audio_data[self.cursor:self.cursor + frames_to_read]
+                frames_to_read = min(source_frames_needed, remaining)
+                raw[:frames_to_read] = self.audio_data[self.cursor:self.cursor + frames_to_read]
                 self.cursor += frames_to_read
+
+            # Resample if speed != 1.0
+            if abs(speed - 1.0) > 0.001:
+                output = self.tempo.resample_block(raw, num_frames)
+                self.tempo._accumulator = new_acc
+            else:
+                output[:] = raw[:num_frames]
 
             # 1. Apply volume
             output *= self.volume
@@ -346,4 +381,7 @@ class Deck:
             "cue_points": [cp.to_dict() for cp in sorted(
                 self.cue_points.values(), key=lambda c: c.slot)],
             "loop": self.loop.to_dict(),
+            "bpm": self.beat_info.get("bpm", 0.0),
+            "beat_count": self.beat_info.get("beat_count", 0),
+            "tempo": self.tempo.get_state(),
         }
