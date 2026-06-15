@@ -4,6 +4,7 @@ Cadence DJ System — Audio Engine
 Central audio engine that manages two decks, a mixer, and
 drives the real-time audio output via sounddevice.
 Computes peak metering levels in the audio callback.
+Supports real-time mix recording.
 """
 
 import threading
@@ -12,6 +13,7 @@ import sounddevice as sd
 from audio.deck import Deck
 from audio.mixer import Mixer
 from audio.metering import compute_peak_levels
+from audio.recorder import MixRecorder
 from config import SAMPLE_RATE, CHANNELS, BLOCK_SIZE, DTYPE
 
 
@@ -19,6 +21,7 @@ class AudioEngine:
     """
     Singleton audio engine managing dual decks, mixer, and real-time output.
     Uses sounddevice's OutputStream with a callback for low-latency playback.
+    Includes mix recording capabilities.
     """
 
     _instance = None
@@ -52,11 +55,15 @@ class AudioEngine:
         self.levels_b: dict = {}
         self.levels_master: dict = {}
 
+        # Mix recorder
+        self.recorder = MixRecorder()
+
     def _audio_callback(self, outdata: np.ndarray, frames: int,
                         time_info, status) -> None:
         """
         Real-time audio callback invoked by sounddevice.
-        Gets frames from both decks, mixes them, computes peak levels.
+        Gets frames from both decks, mixes them, computes peak levels,
+        and pushes the output to the recorder if active.
         """
         if status:
             print(f"[AudioEngine] Stream status: {status}")
@@ -74,6 +81,9 @@ class AudioEngine:
 
         # Compute master output levels (after mixing)
         self.levels_master = compute_peak_levels(mixed)
+
+        # Push to recorder (non-blocking — just appends to buffer)
+        self.recorder.push_block(mixed)
 
         # Write to output
         outdata[:] = mixed
@@ -97,6 +107,10 @@ class AudioEngine:
 
     def stop(self) -> None:
         """Stop the audio output stream."""
+        # Stop recorder if active
+        if self.recorder.state.value != "idle":
+            self.recorder.stop()
+
         if self._stream is not None:
             self._stream.stop()
             self._stream.close()
@@ -125,5 +139,6 @@ class AudioEngine:
                 "deck_b": self.levels_b,
                 "master": self.levels_master,
             },
+            "recording": self.recorder.get_status(),
             "running": self._running,
         }

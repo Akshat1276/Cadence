@@ -134,11 +134,29 @@ export interface WaveformData {
   end?: number;
 }
 
+export interface RecordingState {
+  state: "idle" | "recording" | "paused";
+  name: string;
+  duration: number;
+  file_path: string;
+  total_samples: number;
+  file_size_mb: number;
+}
+
+export interface RecordingInfo {
+  filename: string;
+  path: string;
+  format: string;
+  file_size_mb: number;
+  duration: number;
+}
+
 export interface EngineState {
   deck_a: DeckStatus;
   deck_b: DeckStatus;
   mixer: MixerState;
   levels: LevelsState;
+  recording: RecordingState;
   running: boolean;
 }
 
@@ -408,6 +426,50 @@ export async function getBeats(deckId: string): Promise<{
 }> {
   const res = await api.get(`/deck/${deckId}/beats`);
   return res.data;
+}
+
+// ─── Recording API ────────────────────────────────────
+
+export async function startRecording(name?: string): Promise<RecordingState> {
+  const res = await api.post("/recording/start", { name: name ?? "" });
+  return res.data.recording;
+}
+
+export async function stopRecording(): Promise<RecordingState> {
+  const res = await api.post("/recording/stop");
+  return res.data.recording;
+}
+
+export async function pauseRecording(): Promise<RecordingState> {
+  const res = await api.post("/recording/pause");
+  return res.data.recording;
+}
+
+export async function resumeRecording(): Promise<RecordingState> {
+  const res = await api.post("/recording/resume");
+  return res.data.recording;
+}
+
+export async function listRecordings(): Promise<RecordingInfo[]> {
+  const res = await api.get("/recording/list");
+  return res.data.recordings;
+}
+
+export async function exportRecording(
+  sourcePath: string,
+  format: string,
+  outputName?: string
+): Promise<Record<string, unknown>> {
+  const res = await api.post("/recording/export", {
+    source_path: sourcePath,
+    format,
+    output_name: outputName ?? "",
+  });
+  return res.data.export;
+}
+
+export async function deleteRecording(filename: string): Promise<void> {
+  await api.delete(`/recording/${filename}`);
 }
 
 // ─── Engine API ────────────────────────────────────────
