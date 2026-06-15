@@ -13,6 +13,8 @@ import { PlaybackInfo } from "./components/Monitor/PlaybackInfo";
 import { TrackList } from "./components/Library/TrackList";
 import { PeakMeter } from "./components/Meter/PeakMeter";
 import { RecordingPanel } from "./components/Recording/RecordingPanel";
+import { SpectrumAnalyzer } from "./components/Spectrum/SpectrumAnalyzer";
+import { RoutingPanel } from "./components/Routing/RoutingPanel";
 
 export default function App() {
   const { state, error, connected, refresh } = useEngineState();
@@ -136,9 +138,18 @@ export default function App() {
           />
         </div>
 
+        {/* ─── Spectrum Analyzer ────────────────────────── */}
+        <SpectrumAnalyzer spectrum={state?.spectrum ?? null} height={80} />
+
         {/* ─── Recording ───────────────────────────────── */}
         <RecordingPanel
           recording={state?.recording ?? null}
+          onAction={refresh}
+        />
+
+        {/* ─── Audio Routing ───────────────────────────── */}
+        <RoutingPanel
+          routing={state?.routing ?? null}
           onAction={refresh}
         />
 

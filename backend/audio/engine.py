@@ -3,8 +3,8 @@ Cadence DJ System — Audio Engine
 
 Central audio engine that manages two decks, a mixer, and
 drives the real-time audio output via sounddevice.
-Computes peak metering levels in the audio callback.
-Supports real-time mix recording.
+Computes peak metering, spectrum analysis, mix recording,
+and routes audio to master/cue outputs.
 """
 
 import threading
@@ -14,6 +14,8 @@ from audio.deck import Deck
 from audio.mixer import Mixer
 from audio.metering import compute_peak_levels
 from audio.recorder import MixRecorder
+from audio.spectrum import compute_spectrum
+from audio.router import AudioRouter
 from config import SAMPLE_RATE, CHANNELS, BLOCK_SIZE, DTYPE
 
 
@@ -21,7 +23,7 @@ class AudioEngine:
     """
     Singleton audio engine managing dual decks, mixer, and real-time output.
     Uses sounddevice's OutputStream with a callback for low-latency playback.
-    Includes mix recording capabilities.
+    Includes spectrum analysis, recording, and audio routing.
     """
 
     _instance = None
@@ -55,15 +57,21 @@ class AudioEngine:
         self.levels_b: dict = {}
         self.levels_master: dict = {}
 
+        # Spectrum analyzer state (updated in audio callback)
+        self.spectrum_master: dict = {"bands": [], "peak_freq": 0.0}
+
         # Mix recorder
         self.recorder = MixRecorder()
+
+        # Audio router (master/cue)
+        self.router = AudioRouter()
 
     def _audio_callback(self, outdata: np.ndarray, frames: int,
                         time_info, status) -> None:
         """
         Real-time audio callback invoked by sounddevice.
-        Gets frames from both decks, mixes them, computes peak levels,
-        and pushes the output to the recorder if active.
+        Gets frames from both decks, mixes them, computes peak levels
+        and spectrum, pushes to recorder and cue output.
         """
         if status:
             print(f"[AudioEngine] Stream status: {status}")
@@ -76,11 +84,17 @@ class AudioEngine:
         self.levels_a = compute_peak_levels(frames_a)
         self.levels_b = compute_peak_levels(frames_b)
 
+        # Push pre-fader audio to cue output
+        self.router.push_cue(frames_a, frames_b)
+
         # Delegate all mixing to the Mixer
         mixed = self.mixer.mix(frames_a, frames_b)
 
         # Compute master output levels (after mixing)
         self.levels_master = compute_peak_levels(mixed)
+
+        # Compute spectrum (every callback — 32 bands is cheap)
+        self.spectrum_master = compute_spectrum(mixed)
 
         # Push to recorder (non-blocking — just appends to buffer)
         self.recorder.push_block(mixed)
@@ -93,23 +107,30 @@ class AudioEngine:
         if self._running:
             return
 
+        # Use the router's master device if set
+        device = self.router.master_device_id
+
         self._stream = sd.OutputStream(
             samplerate=SAMPLE_RATE,
             channels=CHANNELS,
             blocksize=BLOCK_SIZE,
             dtype=DTYPE,
+            device=device,
             callback=self._audio_callback,
         )
         self._stream.start()
         self._running = True
         print(f"[AudioEngine] Started — SR={SAMPLE_RATE}, CH={CHANNELS}, "
-              f"Block={BLOCK_SIZE}")
+              f"Block={BLOCK_SIZE}, Device={device or 'default'}")
 
     def stop(self) -> None:
         """Stop the audio output stream."""
         # Stop recorder if active
         if self.recorder.state.value != "idle":
             self.recorder.stop()
+
+        # Stop cue routing
+        self.router.stop()
 
         if self._stream is not None:
             self._stream.stop()
@@ -139,6 +160,8 @@ class AudioEngine:
                 "deck_b": self.levels_b,
                 "master": self.levels_master,
             },
+            "spectrum": self.spectrum_master,
             "recording": self.recorder.get_status(),
+            "routing": self.router.get_state(),
             "running": self._running,
         }
