@@ -1,7 +1,6 @@
 /**
  * Cadence DJ System — Transport Controls Component
- *
- * Play, Pause, Stop buttons for a single deck.
+ * Elite Performance Console Style — Large tactile play/stop buttons
  */
 
 import type { DeckStatus } from "../../api/client";
@@ -20,65 +19,46 @@ export function TransportControls({
 }: TransportControlsProps) {
   const isPlaying = status?.state === "playing";
   const isLoaded = status?.state !== "empty";
+  const accentColor = deckId === "A" ? "#00f2ff" : "#ff007f";
+  const glowTextClass = deckId === "A" ? "glow-deck-a-text" : "glow-deck-b-text";
 
-  const handlePlay = async () => {
-    await playDeck(deckId);
-    onAction();
-  };
-
-  const handlePause = async () => {
-    await pauseDeck(deckId);
-    onAction();
-  };
-
-  const handleStop = async () => {
-    await stopDeck(deckId);
-    onAction();
-  };
+  const handlePlay = async () => { await playDeck(deckId); onAction(); };
+  const handlePause = async () => { await pauseDeck(deckId); onAction(); };
+  const handleStop = async () => { await stopDeck(deckId); onAction(); };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-3">
       {/* Play / Pause toggle */}
       {isPlaying ? (
         <button
           id={`deck-${deckId}-pause`}
           onClick={handlePause}
-          className="w-12 h-12 rounded-full flex items-center justify-center
-                     bg-accent-cyan/20 border border-accent-cyan/40
-                     hover:bg-accent-cyan/30 hover:border-accent-cyan/60
-                     transition-all duration-200 text-accent-cyan"
+          className={`w-14 h-14 rounded-full tactile-btn flex items-center justify-center hover:text-white group`}
+          style={{ color: accentColor }}
           title="Pause"
         >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="currentColor"
+          <span
+            className={`material-symbols-outlined text-[32px] group-hover:${glowTextClass} transition-all`}
+            style={{ fontVariationSettings: "'FILL' 1" }}
           >
-            <rect x="6" y="4" width="4" height="16" rx="1" />
-            <rect x="14" y="4" width="4" height="16" rx="1" />
-          </svg>
+            pause
+          </span>
         </button>
       ) : (
         <button
           id={`deck-${deckId}-play`}
           onClick={handlePlay}
           disabled={!isLoaded}
-          className="w-12 h-12 rounded-full flex items-center justify-center
-                     bg-accent-green/20 border border-accent-green/40
-                     hover:bg-accent-green/30 hover:border-accent-green/60
-                     disabled:opacity-30 disabled:cursor-not-allowed
-                     transition-all duration-200 text-accent-green"
+          className="w-14 h-14 rounded-full tactile-btn flex items-center justify-center hover:text-white group disabled:opacity-30 disabled:cursor-not-allowed"
+          style={{ color: accentColor }}
           title="Play"
         >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="currentColor"
+          <span
+            className={`material-symbols-outlined text-[32px] group-hover:${glowTextClass} transition-all`}
+            style={{ fontVariationSettings: "'FILL' 1" }}
           >
-            <polygon points="6,3 20,12 6,21" />
-          </svg>
+            play_arrow
+          </span>
         </button>
       )}
 
@@ -87,17 +67,20 @@ export function TransportControls({
         id={`deck-${deckId}-stop`}
         onClick={handleStop}
         disabled={!isLoaded}
-        className="w-10 h-10 rounded-full flex items-center justify-center
-                   bg-bg-control border border-border
-                   hover:bg-bg-hover hover:border-border-active
-                   disabled:opacity-30 disabled:cursor-not-allowed
-                   transition-all duration-200 text-text-secondary"
+        className="w-14 h-14 rounded-full tactile-btn flex items-center justify-center
+                   text-on-surface hover:text-on-surface group disabled:opacity-30 disabled:cursor-not-allowed"
         title="Stop"
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-          <rect x="5" y="5" width="14" height="14" rx="2" />
-        </svg>
+        <div className="w-5 h-5 bg-current rounded-sm" />
       </button>
+
+      {/* Cue Button */}
+      <div className="flex flex-col ml-2">
+        <span className="text-xs text-outline uppercase tracking-widest font-semibold mb-1">
+          CUE
+        </span>
+        <button className="btn-small w-14 h-9">CUE</button>
+      </div>
     </div>
   );
 }

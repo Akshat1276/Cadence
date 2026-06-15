@@ -1,8 +1,6 @@
 /**
  * Cadence DJ System — Loop Controls Component
- *
- * Controls for setting loop in/out points, toggling loop,
- * and adjusting loop length (halve/double).
+ * Elite Performance Console Style — Hardware loop buttons
  */
 
 import type { LoopState } from "../../api/client";
@@ -36,47 +34,24 @@ export function LoopControls({
   const isActive = loop?.enabled ?? false;
   const isValid = loop?.is_valid ?? false;
 
-  const handleIn = async () => {
-    await setLoopIn(deckId);
-    onAction();
-  };
-
-  const handleOut = async () => {
-    await setLoopOut(deckId);
-    onAction();
-  };
-
-  const handleToggle = async () => {
-    await toggleLoop(deckId);
-    onAction();
-  };
-
-  const handleClear = async () => {
-    await clearLoop(deckId);
-    onAction();
-  };
-
-  const handleHalve = async () => {
-    await halveLoop(deckId);
-    onAction();
-  };
-
-  const handleDouble = async () => {
-    await doubleLoop(deckId);
-    onAction();
-  };
+  const handleIn = async () => { await setLoopIn(deckId); onAction(); };
+  const handleOut = async () => { await setLoopOut(deckId); onAction(); };
+  const handleToggle = async () => { await toggleLoop(deckId); onAction(); };
+  const handleClear = async () => { await clearLoop(deckId); onAction(); };
+  const handleHalve = async () => { await halveLoop(deckId); onAction(); };
+  const handleDouble = async () => { await doubleLoop(deckId); onAction(); };
 
   return (
-    <div className="flex flex-col gap-1">
-      <div className="flex items-center gap-1">
-        <span className="text-[9px] uppercase tracking-widest text-text-muted font-semibold">
+    <div className="bg-surface-container p-3 rounded-lg border border-surface-raised">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-xs text-outline uppercase tracking-widest font-bold">
           Loop
         </span>
         {isValid && (
           <span
-            className="text-[8px] font-mono px-1 rounded"
+            className="text-xs font-mono px-2 py-0.5 rounded"
             style={{
-              color: isActive ? accentColor : "#6b7280",
+              color: isActive ? accentColor : "var(--color-outline)",
               backgroundColor: isActive ? `${accentColor}15` : "transparent",
             }}
           >
@@ -84,87 +59,25 @@ export function LoopControls({
           </span>
         )}
       </div>
-
-      <div className="flex items-center gap-1">
-        {/* Loop In */}
-        <button
-          onClick={handleIn}
-          className="text-[9px] font-bold px-2 py-1 rounded-md border transition-all duration-150"
-          style={{
-            color: isValid ? accentColor : "#6b7280",
-            borderColor: isValid ? `${accentColor}40` : "#2a2a3e",
-            backgroundColor: isValid ? `${accentColor}10` : "transparent",
-          }}
-          title="Set loop-in point at current position"
-        >
-          IN
-        </button>
-
-        {/* Loop Out */}
-        <button
-          onClick={handleOut}
-          className="text-[9px] font-bold px-2 py-1 rounded-md border transition-all duration-150"
-          style={{
-            color: isValid ? accentColor : "#6b7280",
-            borderColor: isValid ? `${accentColor}40` : "#2a2a3e",
-            backgroundColor: isValid ? `${accentColor}10` : "transparent",
-          }}
-          title="Set loop-out point at current position"
-        >
-          OUT
-        </button>
-
-        {/* Toggle Loop */}
+      <div className="flex gap-2">
+        <button onClick={handleIn} className="btn-small flex-1 h-10">IN</button>
+        <button onClick={handleOut} className="btn-small flex-1 h-10">OUT</button>
         <button
           onClick={handleToggle}
           disabled={!isValid}
-          className="text-[9px] font-bold px-2 py-1 rounded-md border transition-all duration-150
-                     disabled:opacity-30 disabled:cursor-not-allowed"
+          className="btn-small flex-1 h-10 disabled:opacity-30"
           style={{
-            color: isActive ? "#0d0d15" : accentColor,
-            borderColor: isActive ? accentColor : `${accentColor}40`,
-            backgroundColor: isActive ? accentColor : "transparent",
+            color: isActive ? accentColor : undefined,
+            borderColor: isActive ? `${accentColor}50` : undefined,
+            boxShadow: isActive ? `0 0 10px ${accentColor}30` : undefined,
           }}
-          title={isActive ? "Disable loop" : "Enable loop"}
         >
           {isActive ? "ON" : "OFF"}
         </button>
-
-        {/* Halve Loop */}
-        <button
-          onClick={handleHalve}
-          disabled={!isValid}
-          className="text-[9px] font-mono px-1.5 py-1 rounded-md border border-border
-                     text-text-muted hover:text-text-primary hover:border-border-active
-                     transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-          title="Halve loop length"
-        >
-          ÷2
-        </button>
-
-        {/* Double Loop */}
-        <button
-          onClick={handleDouble}
-          disabled={!isValid}
-          className="text-[9px] font-mono px-1.5 py-1 rounded-md border border-border
-                     text-text-muted hover:text-text-primary hover:border-border-active
-                     transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-          title="Double loop length"
-        >
-          ×2
-        </button>
-
-        {/* Clear Loop */}
+        <button onClick={handleHalve} disabled={!isValid} className="btn-small w-12 h-10 disabled:opacity-30">/2</button>
+        <button onClick={handleDouble} disabled={!isValid} className="btn-small w-12 h-10 disabled:opacity-30">x2</button>
         {isValid && (
-          <button
-            onClick={handleClear}
-            className="text-[8px] px-1 py-0.5 rounded border border-border
-                       text-text-muted hover:text-accent-magenta hover:border-accent-magenta/40
-                       transition-all"
-            title="Clear loop"
-          >
-            CLR
-          </button>
+          <button onClick={handleClear} className="btn-small w-12 h-10 text-alert-critical">CLR</button>
         )}
       </div>
     </div>

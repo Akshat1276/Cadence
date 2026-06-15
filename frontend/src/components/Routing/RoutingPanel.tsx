@@ -1,9 +1,6 @@
 /**
- * Cadence DJ System — Audio Routing Panel
- *
- * Device selector for master/cue outputs and per-deck cue monitoring
- * toggles. Allows DJs to preview tracks in headphones while the
- * master output plays on the main speakers.
+ * Cadence DJ System — Audio Routing Panel (Compact for footer status bar)
+ * Elite Performance Console Style
  */
 
 import { useState, useEffect } from "react";
@@ -52,91 +49,78 @@ export function RoutingPanel({ routing, onAction }: RoutingPanelProps) {
   };
 
   return (
-    <div className="flex flex-col gap-2">
-      {/* Compact toggle */}
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => setShowPanel(!showPanel)}
-          className="text-[10px] px-2.5 py-1 rounded-lg border border-border
-                     bg-bg-panel text-text-muted hover:text-text-primary
-                     hover:border-border-active transition-all"
-        >
-          🎧 {showPanel ? "Hide Routing" : "Audio Routing"}
-        </button>
+    <div className="flex items-center gap-3 relative">
+      <span className="opacity-60 uppercase tracking-widest text-[10px]">Audio Routing</span>
 
-        {/* Inline Cue Buttons */}
-        <button
-          onClick={() => handleCueToggle("A")}
-          className={`text-[10px] font-bold px-2 py-1 rounded-lg border transition-all
-            ${
-              routing?.cue_deck_a
-                ? "bg-accent-cyan/15 border-accent-cyan/50 text-accent-cyan"
-                : "bg-transparent border-border text-text-muted hover:text-text-primary"
-            }`}
-          title="Cue monitor Deck A in headphones"
-        >
-          CUE A
-        </button>
-        <button
-          onClick={() => handleCueToggle("B")}
-          className={`text-[10px] font-bold px-2 py-1 rounded-lg border transition-all
-            ${
-              routing?.cue_deck_b
-                ? "bg-accent-magenta/15 border-accent-magenta/50 text-accent-magenta"
-                : "bg-transparent border-border text-text-muted hover:text-text-primary"
-            }`}
-          title="Cue monitor Deck B in headphones"
-        >
-          CUE B
-        </button>
+      {/* Inline Cue Buttons */}
+      <button
+        onClick={() => handleCueToggle("A")}
+        className="border px-2 py-0.5 rounded text-[10px] font-bold transition-all"
+        style={{
+          borderColor: routing?.cue_deck_a ? "rgba(0,242,255,0.5)" : "var(--color-outline-variant)",
+          color: routing?.cue_deck_a ? "#00f2ff" : "var(--color-outline)",
+          backgroundColor: routing?.cue_deck_a ? "rgba(0,242,255,0.1)" : "transparent",
+        }}
+      >
+        CUE A
+      </button>
+      <button
+        onClick={() => handleCueToggle("B")}
+        className="border px-2 py-0.5 rounded text-[10px] font-bold transition-all"
+        style={{
+          borderColor: routing?.cue_deck_b ? "rgba(255,0,127,0.5)" : "var(--color-outline-variant)",
+          color: routing?.cue_deck_b ? "#ff007f" : "var(--color-outline)",
+          backgroundColor: routing?.cue_deck_b ? "rgba(255,0,127,0.1)" : "transparent",
+        }}
+      >
+        CUE B
+      </button>
 
-        {routing?.cue_enabled && (
-          <span className="text-[8px] text-accent-green font-mono">
-            ● CUE ACTIVE
-          </span>
-        )}
-      </div>
+      {/* Settings toggle */}
+      <button
+        onClick={() => setShowPanel(!showPanel)}
+        className="btn-small !text-[10px] !px-2 !py-1"
+      >
+        🎧 {showPanel ? "Hide" : "Setup"}
+      </button>
 
-      {/* Expanded Panel */}
+      {/* Expanded Panel (Dropdown) */}
       {showPanel && (
-        <div className="p-3 rounded-xl bg-bg-panel border border-border flex flex-col gap-3">
+        <div className="absolute bottom-full left-0 mb-2 w-80
+                       bg-surface-container-high border border-surface-raised rounded-lg shadow-xl p-4 flex flex-col gap-4 z-50">
           {/* Master Device */}
-          <div className="flex flex-col gap-1">
-            <span className="text-[9px] uppercase tracking-widest text-text-muted font-semibold">
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs uppercase tracking-widest text-outline font-bold">
               Master Output
             </span>
             <select
               value={routing?.master_device_id ?? ""}
               onChange={(e) => handleMasterDevice(e.target.value)}
-              className="text-xs px-2 py-1.5 rounded-lg bg-bg-control border border-border
-                         text-text-primary focus:border-accent-cyan/50 outline-none"
+              className="text-xs px-2 py-1.5 rounded bg-surface-container text-on-surface"
             >
               <option value="">System Default</option>
               {devices.map((d) => (
                 <option key={d.id} value={d.id}>
-                  {d.name}
-                  {d.is_default ? " (default)" : ""}
+                  {d.name}{d.is_default ? " (default)" : ""}
                 </option>
               ))}
             </select>
           </div>
 
           {/* Cue Device */}
-          <div className="flex flex-col gap-1">
-            <span className="text-[9px] uppercase tracking-widest text-text-muted font-semibold">
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs uppercase tracking-widest text-outline font-bold">
               Cue Output (Headphones)
             </span>
             <select
               value={routing?.cue_device_id ?? ""}
               onChange={(e) => handleCueDevice(e.target.value)}
-              className="text-xs px-2 py-1.5 rounded-lg bg-bg-control border border-border
-                         text-text-primary focus:border-accent-magenta/50 outline-none"
+              className="text-xs px-2 py-1.5 rounded bg-surface-container text-on-surface"
             >
               <option value="">Disabled</option>
               {devices.map((d) => (
                 <option key={d.id} value={d.id}>
-                  {d.name}
-                  {d.is_default ? " (default)" : ""}
+                  {d.name}{d.is_default ? " (default)" : ""}
                 </option>
               ))}
             </select>
@@ -144,8 +128,8 @@ export function RoutingPanel({ routing, onAction }: RoutingPanelProps) {
 
           {/* Cue Volume */}
           {routing?.cue_enabled && (
-            <div className="flex items-center gap-2">
-              <span className="text-[9px] text-text-muted">Cue Vol</span>
+            <div className="flex items-center gap-3">
+              <span className="text-[10px] text-outline">Cue Vol</span>
               <input
                 type="range"
                 min={0}
@@ -154,15 +138,14 @@ export function RoutingPanel({ routing, onAction }: RoutingPanelProps) {
                 value={routing?.cue_volume ?? 1}
                 onChange={handleCueVolume}
                 className="flex-1 h-1"
-                style={{ accentColor: "#a855f7" }}
               />
-              <span className="text-[10px] font-mono text-text-secondary w-8 text-right">
+              <span className="text-[10px] font-mono text-on-surface-variant w-10 text-right">
                 {Math.round((routing?.cue_volume ?? 1) * 100)}%
               </span>
             </div>
           )}
 
-          <span className="text-[8px] text-text-muted italic">
+          <span className="text-[9px] text-outline italic">
             Master device change requires engine restart.
           </span>
         </div>

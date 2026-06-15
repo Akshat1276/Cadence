@@ -1,7 +1,6 @@
 /**
  * Cadence DJ System — Master Controls Component
- *
- * Master output volume, per-deck gain trim knobs, and crossfader curve selector.
+ * Elite Performance Console Style — Trim sliders + Master + Curve
  */
 
 import type { MixerState } from "../../api/client";
@@ -43,16 +42,16 @@ export function MasterControls({ mixer, onAction }: MasterControlsProps) {
   };
 
   return (
-    <div
-      className="flex items-center justify-between gap-6 px-4 py-3
-                    rounded-xl bg-bg-panel border border-border"
-    >
-      {/* Deck A Gain Trim */}
-      <div className="flex flex-col items-center gap-1">
-        <span className="text-[10px] uppercase tracking-widest text-text-muted font-semibold">
-          Trim A
-        </span>
-        <div className="flex items-center gap-1.5">
+    <div className="flex flex-col gap-4 flex-1 max-w-[280px]">
+      {/* Trim A */}
+      <div className="flex flex-col">
+        <div className="flex justify-between w-full text-xs text-outline mb-2 font-bold uppercase tracking-wider">
+          <span>Trim A</span>
+          <span className="text-deck-a font-mono">
+            {gainA > 0 ? "+" : ""}{gainA.toFixed(1)} dB
+          </span>
+        </div>
+        <div className="w-full h-2.5 slider-track relative">
           <input
             id="gain-a"
             type="range"
@@ -61,35 +60,20 @@ export function MasterControls({ mixer, onAction }: MasterControlsProps) {
             step={0.5}
             value={gainA}
             onChange={handleGainA}
-            className="w-20 accent-accent-cyan"
+            className="w-full absolute inset-0"
           />
-          <span className="text-[10px] font-mono text-text-muted w-12 text-right">
-            {gainA > 0 ? "+" : ""}
-            {gainA.toFixed(1)} dB
-          </span>
         </div>
       </div>
 
       {/* Master Volume */}
-      <div className="flex flex-col items-center gap-1">
-        <span className="text-[10px] uppercase tracking-widest text-text-muted font-semibold">
-          Master
-        </span>
-        <div className="flex items-center gap-2">
-          {/* Speaker icon */}
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            className="text-accent-purple"
-          >
-            <polygon points="11,5 6,9 2,9 2,15 6,15 11,19" />
-            <path d="M15.54,8.46a5,5,0,0,1,0,7.07" />
-            <path d="M19.07,4.93a10,10,0,0,1,0,14.14" />
-          </svg>
+      <div className="flex flex-col">
+        <div className="flex justify-between w-full text-xs text-outline mb-2 font-bold uppercase tracking-wider">
+          <span>Master</span>
+          <span className="text-on-surface font-mono">
+            {Math.round(masterVol * 100)}%
+          </span>
+        </div>
+        <div className="w-full h-2.5 slider-track relative">
           <input
             id="master-volume"
             type="range"
@@ -98,40 +82,20 @@ export function MasterControls({ mixer, onAction }: MasterControlsProps) {
             step={0.01}
             value={masterVol}
             onChange={handleMasterVolume}
-            className="w-28"
+            className="w-full absolute inset-0"
           />
-          <span className="text-[10px] font-mono text-accent-purple w-8 text-right font-semibold">
-            {Math.round(masterVol * 100)}%
-          </span>
         </div>
       </div>
 
-      {/* Crossfader Curve Selector */}
-      <div className="flex flex-col items-center gap-1">
-        <span className="text-[10px] uppercase tracking-widest text-text-muted font-semibold">
-          Curve
-        </span>
-        <select
-          id="crossfader-curve"
-          value={curve}
-          onChange={handleCurve}
-          className="text-xs bg-bg-control border border-border rounded-lg px-2 py-1
-                     text-text-secondary hover:border-border-active
-                     focus:outline-none focus:border-accent-purple
-                     transition-colors cursor-pointer"
-        >
-          <option value="constant_power">Smooth</option>
-          <option value="linear">Linear</option>
-          <option value="sharp">Sharp</option>
-        </select>
-      </div>
-
-      {/* Deck B Gain Trim */}
-      <div className="flex flex-col items-center gap-1">
-        <span className="text-[10px] uppercase tracking-widest text-text-muted font-semibold">
-          Trim B
-        </span>
-        <div className="flex items-center gap-1.5">
+      {/* Trim B */}
+      <div className="flex flex-col">
+        <div className="flex justify-between w-full text-xs text-outline mb-2 font-bold uppercase tracking-wider">
+          <span>Trim B</span>
+          <span className="text-deck-b font-mono">
+            {gainB > 0 ? "+" : ""}{gainB.toFixed(1)} dB
+          </span>
+        </div>
+        <div className="w-full h-2.5 slider-track relative">
           <input
             id="gain-b"
             type="range"
@@ -140,13 +104,24 @@ export function MasterControls({ mixer, onAction }: MasterControlsProps) {
             step={0.5}
             value={gainB}
             onChange={handleGainB}
-            className="w-20 accent-accent-magenta"
+            className="w-full absolute inset-0"
           />
-          <span className="text-[10px] font-mono text-text-muted w-12 text-right">
-            {gainB > 0 ? "+" : ""}
-            {gainB.toFixed(1)} dB
-          </span>
         </div>
+      </div>
+
+      {/* Curve Selector */}
+      <div className="flex items-center gap-3">
+        <span className="text-xs text-outline uppercase tracking-wider font-bold">Curve</span>
+        <select
+          id="crossfader-curve"
+          value={curve}
+          onChange={handleCurve}
+          className="text-xs px-2 py-1 rounded bg-surface-container text-on-surface cursor-pointer"
+        >
+          <option value="constant_power">Smooth</option>
+          <option value="linear">Linear</option>
+          <option value="sharp">Sharp</option>
+        </select>
       </div>
     </div>
   );
