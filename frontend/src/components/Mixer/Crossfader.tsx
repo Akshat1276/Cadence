@@ -1,8 +1,6 @@
 /**
  * Cadence DJ System — Crossfader Component
- *
- * Horizontal slider that blends audio between Deck A and Deck B.
- * Position: 0.0 = full A, 0.5 = center (equal mix), 1.0 = full B.
+ * Elite Performance Console Style — Hardware crossfader with gradient
  */
 
 import { setCrossfader } from "../../api/client";
@@ -19,53 +17,39 @@ export function Crossfader({ position, onAction }: CrossfaderProps) {
     onAction();
   };
 
-  // Calculate which side is dominant for the indicator
-  const aPercent = Math.round((1 - position) * 100);
-  const bPercent = Math.round(position * 100);
-
   return (
-    <div className="flex flex-col items-center gap-2 w-full">
-      <span className="text-[10px] uppercase tracking-widest text-text-muted font-semibold">
-        Crossfader
-      </span>
+    <div className="flex-1 relative">
+      {/* Track with gradient */}
+      <div className="w-full h-3 slider-track relative rounded-full">
+        <div
+          className="absolute inset-y-0 left-0 rounded-full opacity-50"
+          style={{
+            width: `${position * 100}%`,
+            background: "linear-gradient(to right, rgba(0,242,255,0.8), rgba(255,0,127,0.8))",
+          }}
+        />
+      </div>
 
-      <div className="flex items-center gap-3 w-full max-w-md">
-        {/* Deck A indicator */}
-        <div className="flex flex-col items-center w-10">
-          <span className="text-[10px] font-bold text-accent-cyan">A</span>
-          <span className="text-[10px] font-mono text-text-muted">
-            {aPercent}%
-          </span>
-        </div>
+      {/* Range input (overlaid for interaction) */}
+      <input
+        id="crossfader"
+        type="range"
+        min={0}
+        max={1}
+        step={0.005}
+        value={position}
+        onChange={handleChange}
+        className="absolute inset-0 w-full opacity-0 cursor-ew-resize z-10"
+        style={{ height: "100%" }}
+      />
 
-        {/* Slider track with custom gradient */}
-        <div className="flex-1 relative">
-          <div
-            className="absolute inset-0 h-[4px] top-1/2 -translate-y-1/2 rounded-full"
-            style={{
-              background: `linear-gradient(to right, #00d4ff, #7c3aed, #ff006e)`,
-              opacity: 0.3,
-            }}
-          />
-          <input
-            id="crossfader"
-            type="range"
-            min={0}
-            max={1}
-            step={0.005}
-            value={position}
-            onChange={handleChange}
-            className="relative z-10 w-full"
-          />
-        </div>
-
-        {/* Deck B indicator */}
-        <div className="flex flex-col items-center w-10">
-          <span className="text-[10px] font-bold text-accent-magenta">B</span>
-          <span className="text-[10px] font-mono text-text-muted">
-            {bPercent}%
-          </span>
-        </div>
+      {/* Custom thumb indicator */}
+      <div
+        className="absolute top-1/2 -translate-y-1/2 w-6 h-8 bg-surface-raised border-2 border-outline-variant
+                   rounded flex items-center justify-center cursor-ew-resize shadow-xl hover:border-outline transition-colors pointer-events-none z-5"
+        style={{ left: `calc(${position * 100}% - 12px)` }}
+      >
+        <div className="w-0.5 h-5 bg-outline rounded-full" />
       </div>
     </div>
   );

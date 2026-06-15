@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Cadence - Professional DJ System</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "deck-a": "#00f2ff",
+                        "deck-b": "#ff007f",
+                        "on-primary-fixed-variant": "#004f54",
+                        "on-primary-fixed": "#002022",
+                        "tertiary": "#e4ffd6",
+                        "surface-container": "#201f21",
+                        "primary-fixed": "#74f5ff",
+                        "alert-critical": "#ff4d4d",
+                        "on-error": "#690005",
+                        "secondary-container": "#ff4a8d",
+                        "on-background": "#e5e1e4",
+                        "on-secondary-fixed": "#3f001a",
+                        "secondary-fixed": "#ffd9e1",
+                        "surface-dim": "#131315",
+                        "surface-container-high": "#2a2a2c",
+                        "tertiary-fixed-dim": "#2ae500",
+                        "on-secondary-fixed-variant": "#8f0044",
+                        "error-container": "#93000a",
+                        "tertiary-fixed": "#79ff5b",
+                        "on-secondary": "#65002e",
+                        "on-tertiary-container": "#106f00",
+                        "primary": "#e1fdff",
+                        "on-primary-container": "#006a71",
+                        "on-tertiary-fixed": "#022100",
+                        "active-sync": "#39ff14",
+                        "surface": "#131315",
+                        "on-tertiary-fixed-variant": "#095300",
+                        "surface-container-lowest": "#0e0e10",
+                        "surface-tint": "#00dbe7",
+                        "surface-bright": "#39393b",
+                        "inverse-surface": "#e5e1e4",
+                        "on-primary": "#00363a",
+                        "secondary-fixed-dim": "#ffb1c4",
+                        "on-secondary-container": "#590028",
+                        "tertiary-container": "#34fc0d",
+                        "secondary": "#ffb1c4",
+                        "on-surface": "#ffffff", /* Brightened for readability */
+                        "outline-variant": "#4a595b", /* Lightened for depth */
+                        "on-surface-variant": "#b9cacb",
+                        "outline": "#a4b4b5", /* Lightened for readability */
+                        "surface-container-highest": "#353437",
+                        "surface-container-low": "#1c1b1d",
+                        "primary-fixed-dim": "#00dbe7",
+                        "error": "#ffb4ab",
+                        "background": "#0a0a0c", /* Darker to make UI pop */
+                        "on-error-container": "#ffdad6",
+                        "surface-raised": "#222225",
+                        "surface-variant": "#353437",
+                        "zinc-400": "#a1a1aa",
+                        "surface-inset": "#000000", /* Deep black for screens/inset */
+                        "primary-container": "#00f2ff",
+                        "inverse-on-surface": "#313032",
+                        "on-tertiary": "#053900",
+                        "inverse-primary": "#00696f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "panel-padding": "16px",
+                        "unit": "8px",
+                        "section-margin": "24px",
+                        "control-gap": "12px",
+                        "jog-size-lg": "280px",
+                        "fader-width": "56px"
+                    },
+                    "fontFamily": {
+                        "stats-readout": ["JetBrains Mono", "monospace"],
+                        "body-md": ["Geist", "sans-serif"],
+                        "label-mono-sm": ["JetBrains Mono", "monospace"],
+                        "display-track-title": ["Geist", "sans-serif"],
+                        "headline-deck": ["Geist", "sans-serif"],
+                        "label-mono-lg": ["JetBrains Mono", "monospace"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+            overflow: hidden; 
+        }
+        
+        .knob-bg {
+            background: linear-gradient(180deg, #353538 0%, #1a1a1c 100%);
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.15), 0 3px 6px rgba(0,0,0,0.6);
+            border: 1px solid #111;
+        }
+        
+        .recessed-channel {
+            box-shadow: inset 0 3px 8px rgba(0,0,0,0.9);
+        }
+        
+        .jog-wheel {
+            background: conic-gradient(from 0deg, #111, #333, #111, #333, #111);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.8), inset 0 0 0 2px rgba(255,255,255,0.1);
+        }
+        
+        .tactile-btn {
+            background: linear-gradient(180deg, theme('colors.surface-raised') 0%, theme('colors.surface-container') 100%);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 3px 6px rgba(0,0,0,0.8);
+            border: 1px solid theme('colors.outline-variant');
+            transition: all 0.1s;
+        }
+        .tactile-btn:active {
+            transform: translateY(2px);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.8), 0 1px 2px rgba(0,0,0,0.4);
+        }
+        
+        .glow-deck-a {
+            box-shadow: 0 0 16px rgba(0, 242, 255, 0.5);
+        }
+        .glow-deck-a-text {
+            text-shadow: 0 0 8px rgba(0, 242, 255, 0.6);
+        }
+        .glow-deck-b {
+            box-shadow: 0 0 16px rgba(255, 0, 127, 0.5);
+        }
+        .glow-deck-b-text {
+            text-shadow: 0 0 8px rgba(255, 0, 127, 0.6);
+        }
+        .glow-sync {
+            box-shadow: 0 0 12px rgba(57, 255, 20, 0.8);
+        }
+        
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: theme('colors.surface-inset');
+            border-radius: 5px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: theme('colors.surface-variant');
+            border-radius: 5px;
+            border: 2px solid theme('colors.surface-inset');
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: theme('colors.outline');
+        }
+
+        .slider-track {
+            background: theme('colors.surface-inset');
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.9);
+            border-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .slider-thumb {
+            background: linear-gradient(180deg, theme('colors.surface-raised') 0%, theme('colors.surface-container-low') 100%);
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+        .btn-small {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 4px;
+            background: linear-gradient(180deg, theme('colors.surface-container-high') 0%, theme('colors.surface-container') 100%);
+            border: 1px solid theme('colors.outline-variant');
+            color: theme('colors.on-surface');
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            transition: all 0.1s;
+        }
+        .btn-small:hover {
+            border-color: theme('colors.outline');
+            background: theme('colors.surface-raised');
+        }
+        .btn-small:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+        .btn-small.active {
+            background: theme('colors.surface-inset');
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
+        }
+        .led-meter {
+            background: linear-gradient(to top, 
+                #39ff14 0%, #39ff14 60%, 
+                #ffea00 60%, #ffea00 85%, 
+                #ff4d4d 85%, #ff4d4d 100%);
+            opacity: 0.8;
+            box-shadow: 0 0 8px currentColor;
+        }
+    </style>
+</head>
+<body class="flex flex-col h-screen font-body-md select-none text-on-surface">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-surface-container-lowest/95 backdrop-blur-xl shadow-[0_4px_24px_rgba(0,0,0,0.5)] border-b border-surface-raised">
+<div class="flex items-center gap-8">
+<h1 class="font-display-track-title text-[24px] font-bold text-deck-a tracking-tighter leading-none flex items-center gap-3">
+<span class="w-4 h-4 rounded-full bg-deck-a glow-deck-a inline-block"></span>
+            Cadence
+        </h1>
+<span class="text-outline text-sm tracking-[0.2em] uppercase font-semibold">Pro DJ System</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-3 text-sm font-semibold">
+<span class="w-3 h-3 rounded-full bg-active-sync glow-sync"></span>
+<span class="text-on-surface tracking-wider uppercase">Live</span>
+</div>
+<div class="h-6 w-px bg-outline-variant"></div>
+<div class="text-right flex flex-col font-stats-readout">
+<span class="text-xs text-outline">MASTER</span>
+<span class="text-on-surface text-sm font-bold">0.0 dB</span>
+</div>
+</div>
+</header>
+<!-- Main Workspace -->
+<main class="flex-1 mt-16 flex flex-col p-4 gap-4 overflow-hidden pb-[140px]">
+<!-- Spectrum Analyzer (Global) - Moved to top for better visibility -->
+<section class="h-24 bg-surface-inset rounded-lg border border-surface-raised relative overflow-hidden flex items-end shadow-inner">
+<div class="absolute top-2 left-4 text-xs text-outline uppercase tracking-[0.15em] font-bold z-10">Master Spectrum</div>
+<!-- Simulated vibrant spectrum -->
+<div class="w-full h-full flex items-end opacity-60 border-b-2 border-deck-a/40 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjbWFzdGVyR3JhZCkiIG1hc2s9InVybCgjbWFzdGVyTWFzaykiLz48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9Im1hc3RlckdyYWQiIHgxPSIwIiB4Mj0iMCIgeTE9IjEiIHkyPSIwIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjMzlGRjE0Ii8+PHN0b3Agb2Zmc2V0PSI3MCUiIHN0b3AtY29sb3I9IiNGRkVBMDAiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNGRjRENEQiLz48L2xpbmVhckdyYWRpZW50PjxtYXNrIGlkPSJtYXN0ZXJNYXNrIj48cGF0aCBkPSJNMCAxMDBMMTAgODVMMjAgOTBMMzAgNDBMNDAgNjBBNTAgMjBBNjAgNzBBNzAgOTBMODAgMTBMMTBTIDEwMFoiIGZpbGw9IndoaXRlIi8+PC9tYXNrPjwvZGVmcz48L3N2Zz4=')] bg-cover bg-bottom"></div>
+</section>
+<!-- Decks Section -->
+<section class="flex flex-col gap-4 flex-1">
+<div class="flex gap-4 flex-1 h-full">
+<!-- Deck A -->
+<div class="flex-1 flex flex-col bg-surface-container-low rounded-xl border border-surface-raised shadow-lg overflow-hidden relative">
+<div class="absolute top-0 left-0 w-full h-1 bg-deck-a glow-deck-a opacity-80 z-10"></div>
+<!-- Header -->
+<div class="flex justify-between items-start p-4 bg-surface-container border-b border-surface-raised">
+<div class="w-full flex gap-4 items-center">
+<div class="w-14 h-14 bg-surface-inset rounded border border-deck-a/30 flex items-center justify-center relative overflow-hidden">
+<span class="text-deck-a font-black text-2xl z-10 glow-deck-a-text">A</span>
+<div class="absolute inset-0 bg-deck-a/10"></div>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-center mb-1">
+<h2 class="font-display-track-title text-[28px] text-on-surface font-bold leading-none tracking-tight">No track loaded</h2>
+<span class="font-stats-readout text-xl text-deck-a font-bold">120.00</span>
+</div>
+<div class="flex justify-between text-sm text-outline font-label-mono-lg font-semibold">
+<span class="text-on-surface text-lg">00:00.00</span>
+<span>-00:00.00</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Waveform Area -->
+<div class="h-32 bg-surface-inset relative flex items-center justify-center overflow-hidden border-b border-surface-raised shadow-inner">
+<div class="absolute top-2 left-4 text-xs text-outline uppercase tracking-widest font-bold z-10">Waveform</div>
+<div class="absolute top-2 right-4 flex gap-2 z-10 bg-surface-container/80 backdrop-blur rounded p-1">
+<button class="w-6 h-6 rounded bg-surface hover:bg-surface-raised text-outline hover:text-white flex items-center justify-center font-bold text-lg leading-none">-</button>
+<span class="text-on-surface text-xs font-stats-readout flex items-center px-1">1x</span>
+<button class="w-6 h-6 rounded bg-surface hover:bg-surface-raised text-outline hover:text-white flex items-center justify-center font-bold text-lg leading-none">+</button>
+</div>
+<div class="absolute inset-0 flex items-center justify-center opacity-30 bg-[linear-gradient(90deg,transparent_49%,theme('colors.deck-a')_50%,transparent_51%)]"></div>
+<span class="text-outline/40 text-sm uppercase tracking-widest font-semibold">No waveform data</span>
+</div>
+<!-- Lower Deck Controls -->
+<div class="flex-1 p-5 flex flex-col gap-6 bg-surface-container-low">
+<!-- Playback & Tempo -->
+<div class="flex justify-between items-center bg-surface-container p-3 rounded-lg border border-surface-raised">
+<div class="flex items-center gap-4">
+<button class="w-16 h-16 rounded-full tactile-btn flex items-center justify-center text-deck-a hover:text-white group">
+<span class="material-symbols-outlined text-[36px] group-hover:glow-deck-a-text transition-all" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+<button class="w-16 h-16 rounded-full tactile-btn flex items-center justify-center text-on-surface hover:text-deck-a group">
+<div class="w-5 h-5 bg-currentColor rounded-sm group-hover:glow-deck-a-text transition-all"></div>
+</button>
+<div class="flex flex-col ml-4">
+<span class="text-xs text-outline uppercase tracking-widest font-semibold mb-1">CUE</span>
+<button class="btn-small w-16 h-10 !text-sm">CUE</button>
+</div>
+</div>
+<div class="flex items-center gap-4 bg-surface-inset p-3 rounded-lg border border-surface-raised">
+<span class="material-symbols-outlined text-[20px] text-outline">volume_up</span>
+<div class="w-32 h-2 slider-track relative">
+<div class="absolute top-1/2 -translate-y-1/2 left-full w-5 h-6 rounded slider-thumb border-deck-a/50">
+<div class="w-0.5 h-3 bg-deck-a mx-auto mt-1 opacity-80"></div>
+</div>
+</div>
+<span class="text-sm text-deck-a font-stats-readout font-bold w-10 text-right">100</span>
+</div>
+</div>
+<!-- Middle Section: Hotcues & Loops & Pitch -->
+<div class="flex gap-6 mt-2 flex-1">
+<!-- Left Col: Pads & Loops -->
+<div class="flex-1 flex flex-col gap-5">
+<div class="bg-surface-container p-3 rounded-lg border border-surface-raised flex-1">
+<div class="text-xs text-outline mb-3 uppercase tracking-widest font-bold">Hot Cues</div>
+<div class="grid grid-cols-4 gap-2 h-[calc(100%-28px)]">
+<button class="rounded tactile-btn text-sm font-stats-readout text-on-surface hover:border-deck-a transition-colors">1</button>
+<button class="rounded tactile-btn text-sm font-stats-readout text-on-surface hover:border-deck-a transition-colors">2</button>
+<button class="rounded tactile-btn text-sm font-stats-readout text-on-surface hover:border-deck-a transition-colors">3</button>
+<button class="rounded tactile-btn text-sm font-stats-readout text-on-surface hover:border-deck-a transition-colors">4</button>
+<button class="rounded tactile-btn text-sm font-stats-readout text-on-surface hover:border-deck-a transition-colors">5</button>
+<button class="rounded tactile-btn text-sm font-stats-readout text-on-surface hover:border-deck-a transition-colors">6</button>
+<button class="rounded tactile-btn text-sm font-stats-readout text-on-surface hover:border-deck-a transition-colors">7</button>
+<button class="rounded tactile-btn text-sm font-stats-readout text-on-surface hover:border-deck-a transition-colors">8</button>
+</div>
+</div>
+<div class="bg-surface-container p-3 rounded-lg border border-surface-raised">
+<div class="text-xs text-outline mb-3 uppercase tracking-widest font-bold">Loop</div>
+<div class="flex gap-2">
+<button class="btn-small flex-1 h-10">IN</button>
+<button class="btn-small flex-1 h-10">OUT</button>
+<button class="btn-small flex-1 h-10 active !text-deck-a border-deck-a/50 shadow-[0_0_10px_rgba(0,242,255,0.2)]">OFF</button>
+<button class="btn-small w-12 h-10">/2</button>
+<button class="btn-small w-12 h-10">x2</button>
+</div>
+</div>
+</div>
+<!-- Right Col: Pitch & Controls -->
+<div class="w-48 bg-surface-container p-4 rounded-lg border border-surface-raised flex flex-col">
+<div class="flex justify-between text-xs text-outline mb-4 uppercase tracking-widest font-bold">
+<span>Tempo</span>
+<span class="text-deck-a font-stats-readout">+0.0%</span>
+</div>
+<div class="flex gap-4 flex-1">
+<div class="w-8 h-full slider-track relative mx-auto flex justify-center">
+<div class="absolute top-1/2 -translate-y-1/2 w-full h-1 bg-surface-raised/80 z-0"></div>
+<div class="absolute top-1/2 -translate-y-1/2 w-12 h-8 rounded slider-thumb z-10 border border-deck-a/30 flex items-center justify-center cursor-ns-resize shadow-lg">
+<div class="w-8 h-1 bg-deck-a/80 rounded-full"></div>
+</div>
+</div>
+<div class="flex flex-col justify-between items-center py-4">
+<button class="btn-small w-12 h-10 flex items-center justify-center"><span class="material-symbols-outlined text-[18px]">lock</span></button>
+<button class="btn-small w-12 h-10">RST</button>
+<button class="btn-small w-12 h-10 active !text-deck-a border-deck-a/50 shadow-[0_0_10px_rgba(0,242,255,0.2)]">SYNC</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Section: EQ & Effects -->
+<div class="flex gap-4 mt-2">
+<!-- EQ Section -->
+<div class="bg-surface-container p-3 rounded-lg border border-surface-raised w-48">
+<div class="text-xs text-outline mb-3 uppercase tracking-widest font-bold text-center">EQ</div>
+<div class="flex justify-between px-2">
+<div class="flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full knob-bg relative group cursor-ns-resize">
+<div class="absolute top-1 left-1/2 -translate-x-1/2 w-1 h-2.5 bg-deck-a rounded-sm group-hover:glow-deck-a"></div>
+</div>
+<span class="text-[10px] text-outline font-bold">HI</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full knob-bg relative group cursor-ns-resize">
+<div class="absolute top-1 left-1/2 -translate-x-1/2 w-1 h-2.5 bg-deck-a rounded-sm group-hover:glow-deck-a"></div>
+</div>
+<span class="text-[10px] text-outline font-bold">MID</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full knob-bg relative group cursor-ns-resize">
+<div class="absolute top-1 left-1/2 -translate-x-1/2 w-1 h-2.5 bg-deck-a rounded-sm group-hover:glow-deck-a"></div>
+</div>
+<span class="text-[10px] text-outline font-bold">LOW</span>
+</div>
+</div>
+</div>
+<!-- Effects Rack -->
+<div class="flex-1 bg-surface-inset p-3 rounded-lg border border-surface-raised relative flex flex-col justify-center shadow-inner">
+<div class="text-xs text-outline uppercase tracking-widest font-bold absolute top-3 left-4">Effects Unit A</div>
+<div class="flex gap-3 justify-end items-center h-full pt-4">
+<button class="btn-small h-10 w-14 opacity-60 hover:opacity-100">FLT</button>
+<button class="btn-small h-10 w-14 opacity-60 hover:opacity-100">REV</button>
+<button class="btn-small h-10 w-14 opacity-60 hover:opacity-100">DLY</button>
+<button class="btn-small h-10 w-14 opacity-60 hover:opacity-100">FLG</button>
+<button class="btn-small h-10 w-14 opacity-60 hover:opacity-100">BIT</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Deck B -->
+<div class="flex-1 flex flex-col bg-surface-container-low rounded-xl border border-surface-raised shadow-lg overflow-hidden relative">
+<div class="absolute top-0 left-0 w-full h-1 bg-deck-b glow-deck-b opacity-80 z-10"></div>
+<!-- Header -->
+<div class="flex justify-between items-start p-4 bg-surface-container border-b border-surface-raised">
+<div class="w-full flex gap-4 items-center">
+<div class="w-14 h-14 bg-surface-inset rounded border border-deck-b/30 flex items-center justify-center relative overflow-hidden">
+<span class="text-deck-b font-black text-2xl z-10 glow-deck-b-text">B</span>
+<div class="absolute inset-0 bg-deck-b/10"></div>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-center mb-1">
+<h2 class="font-display-track-title text-[28px] text-on-surface font-bold leading-none tracking-tight">No track loaded</h2>
+<span class="font-stats-readout text-xl text-deck-b font-bold">120.00</span>
+</div>
+<div class="flex justify-between text-sm text-outline font-label-mono-lg font-semibold">
+<span class="text-on-surface text-lg">00:00.00</span>
+<span>-00:00.00</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Waveform Area -->
+<div class="h-32 bg-surface-inset relative flex items-center justify-center overflow-hidden border-b border-surface-raised shadow-inner">
+<div class="absolute top-2 left-4 text-xs text-outline uppercase tracking-widest font-bold z-10">Waveform</div>
+<div class="absolute top-2 right-4 flex gap-2 z-10 bg-surface-container/80 backdrop-blur rounded p-1">
+<button class="w-6 h-6 rounded bg-surface hover:bg-surface-raised text-outline hover:text-white flex items-center justify-center font-bold text-lg leading-none">-</button>
+<span class="text-on-surface text-xs font-stats-readout flex items-center px-1">1x</span>
+<button class="w-6 h-6 rounded bg-surface hover:bg-surface-raised text-outline hover:text-white flex items-center justify-center font-bold text-lg leading-none">+</button>
+</div>
+<div class="absolute inset-0 flex items-center justify-center opacity-30 bg-[linear-gradient(90deg,transparent_49%,theme('colors.deck-b')_50%,transparent_51%)]"></div>
+<span class="text-outline/40 text-sm uppercase tracking-widest font-semibold">No waveform data</span>
+</div>
+<!-- Lower Deck Controls -->
+<div class="flex-1 p-5 flex flex-col gap-6 bg-surface-container-low">
+<!-- Playback & Tempo -->
+<div class="flex justify-between items-center bg-surface-container p-3 rounded-lg border border-surface-raised">
+<div class="flex items-center gap-4">
+<button class="w-16 h-16 rounded-full tactile-btn flex items-center justify-center text-deck-b hover:text-white group">
+<span class="material-symbols-outlined text-[36px] group-hover:glow-deck-b-text transition-all" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+<button class="w-16 h-16 rounded-full tactile-btn flex items-center justify-center text-on-surface hover:text-deck-b group">
+<div class="w-5 h-5 bg-currentColor rounded-sm group-hover:glow-deck-b-text transition-all"></div>
+</button>
+<div class="flex flex-col ml-4">
+<span class="text-xs text-outline uppercase tracking-widest font-semibold mb-1">CUE</span>
+<button class="btn-small w-16 h-10 !text-sm">CUE</button>
+</div>
+</div>
+<div class="flex items-center gap-4 bg-surface-inset p-3 rounded-lg border border-surface-raised">
+<span class="material-symbols-outlined text-[20px] text-outline">volume_up</span>
+<div class="w-32 h-2 slider-track relative">
+<div class="absolute top-1/2 -translate-y-1/2 left-full w-5 h-6 rounded slider-thumb border-deck-b/50">
+<div class="w-0.5 h-3 bg-deck-b mx-auto mt-1 opacity-80"></div>
+</div>
+</div>
+<span class="text-sm text-deck-b font-stats-readout font-bold w-10 text-right">100</span>
+</div>
+</div>
+<!-- Middle Section: Hotcues & Loops & Pitch -->
+<div class="flex gap-6 mt-2 flex-1">
+<!-- Left Col: Pads & Loops -->
+<div class="flex-1 flex flex-col gap-5">
+<div class="bg-surface-container p-3 rounded-lg border border-surface-raised flex-1">
+<div class="text-xs text-outline mb-3 uppercase tracking-widest font-bold">Hot Cues</div>
+<div class="grid grid-cols-4 gap-2 h-[calc(100%-28px)]">
+<button class="rounded tactile-btn text-sm font-stats-readout text-on-surface hover:border-deck-b transition-colors">1</button>
+<button class="rounded tactile-btn text-sm font-stats-readout text-on-surface hover:border-deck-b transition-colors">2</button>
+<button class="rounded tactile-btn text-sm font-stats-readout text-on-surface hover:border-deck-b transition-colors">3</button>
+<button class="rounded tactile-btn text-sm font-stats-readout text-on-surface hover:border-deck-b transition-colors">4</button>
+<button class="rounded tactile-btn text-sm font-stats-readout text-on-surface hover:border-deck-b transition-colors">5</button>
+<button class="rounded tactile-btn text-sm font-stats-readout text-on-surface hover:border-deck-b transition-colors">6</button>
+<button class="rounded tactile-btn text-sm font-stats-readout text-on-surface hover:border-deck-b transition-colors">7</button>
+<button class="rounded tactile-btn text-sm font-stats-readout text-on-surface hover:border-deck-b transition-colors">8</button>
+</div>
+</div>
+<div class="bg-surface-container p-3 rounded-lg border border-surface-raised">
+<div class="text-xs text-outline mb-3 uppercase tracking-widest font-bold">Loop</div>
+<div class="flex gap-2">
+<button class="btn-small flex-1 h-10">IN</button>
+<button class="btn-small flex-1 h-10">OUT</button>
+<button class="btn-small flex-1 h-10 active !text-deck-b border-deck-b/50 shadow-[0_0_10px_rgba(255,0,127,0.2)]">OFF</button>
+<button class="btn-small w-12 h-10">/2</button>
+<button class="btn-small w-12 h-10">x2</button>
+</div>
+</div>
+</div>
+<!-- Right Col: Pitch & Controls -->
+<div class="w-48 bg-surface-container p-4 rounded-lg border border-surface-raised flex flex-col">
+<div class="flex justify-between text-xs text-outline mb-4 uppercase tracking-widest font-bold">
+<span>Tempo</span>
+<span class="text-deck-b font-stats-readout">+0.0%</span>
+</div>
+<div class="flex gap-4 flex-1">
+<div class="w-8 h-full slider-track relative mx-auto flex justify-center">
+<div class="absolute top-1/2 -translate-y-1/2 w-full h-1 bg-surface-raised/80 z-0"></div>
+<div class="absolute top-1/2 -translate-y-1/2 w-12 h-8 rounded slider-thumb z-10 border border-deck-b/30 flex items-center justify-center cursor-ns-resize shadow-lg">
+<div class="w-8 h-1 bg-deck-b/80 rounded-full"></div>
+</div>
+</div>
+<div class="flex flex-col justify-between items-center py-4">
+<button class="btn-small w-12 h-10 flex items-center justify-center"><span class="material-symbols-outlined text-[18px]">lock</span></button>
+<button class="btn-small w-12 h-10">RST</button>
+<button class="btn-small w-12 h-10 active !text-deck-b border-deck-b/50 shadow-[0_0_10px_rgba(255,0,127,0.2)]">SYNC</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Section: EQ & Effects -->
+<div class="flex gap-4 mt-2">
+<!-- EQ Section -->
+<div class="bg-surface-container p-3 rounded-lg border border-surface-raised w-48">
+<div class="text-xs text-outline mb-3 uppercase tracking-widest font-bold text-center">EQ</div>
+<div class="flex justify-between px-2">
+<div class="flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full knob-bg relative group cursor-ns-resize">
+<div class="absolute top-1 left-1/2 -translate-x-1/2 w-1 h-2.5 bg-deck-b rounded-sm group-hover:glow-deck-b"></div>
+</div>
+<span class="text-[10px] text-outline font-bold">HI</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full knob-bg relative group cursor-ns-resize">
+<div class="absolute top-1 left-1/2 -translate-x-1/2 w-1 h-2.5 bg-deck-b rounded-sm group-hover:glow-deck-b"></div>
+</div>
+<span class="text-[10px] text-outline font-bold">MID</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full knob-bg relative group cursor-ns-resize">
+<div class="absolute top-1 left-1/2 -translate-x-1/2 w-1 h-2.5 bg-deck-b rounded-sm group-hover:glow-deck-b"></div>
+</div>
+<span class="text-[10px] text-outline font-bold">LOW</span>
+</div>
+</div>
+</div>
+<!-- Effects Rack -->
+<div class="flex-1 bg-surface-inset p-3 rounded-lg border border-surface-raised relative flex flex-col justify-center shadow-inner">
+<div class="text-xs text-outline uppercase tracking-widest font-bold absolute top-3 left-4">Effects Unit B</div>
+<div class="flex gap-3 justify-end items-center h-full pt-4">
+<button class="btn-small h-10 w-14 opacity-60 hover:opacity-100">FLT</button>
+<button class="btn-small h-10 w-14 opacity-60 hover:opacity-100">REV</button>
+<button class="btn-small h-10 w-14 opacity-60 hover:opacity-100">DLY</button>
+<button class="btn-small h-10 w-14 opacity-60 hover:opacity-100">FLG</button>
+<button class="btn-small h-10 w-14 opacity-60 hover:opacity-100">BIT</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Mixer & Crossfader Section -->
+<section class="h-32 bg-surface-container rounded-xl border border-surface-raised flex flex-col justify-center p-6 shadow-lg mt-2 relative">
+<div class="absolute top-3 left-6 text-xs text-outline uppercase tracking-[0.2em] font-bold">Mixer</div>
+<div class="flex items-center gap-8 h-full pt-6">
+<!-- Channel A Meter & Trim -->
+<div class="flex-1 flex items-center justify-end gap-6">
+<div class="flex flex-col items-center flex-1 max-w-[240px]">
+<div class="flex justify-between w-full text-xs text-outline mb-3 font-bold uppercase tracking-wider">
+<span>Trim A</span>
+<span class="text-deck-a font-stats-readout">0.0 dB</span>
+</div>
+<div class="w-full h-3 slider-track relative">
+<div class="absolute top-1/2 -translate-y-1/2 left-0 w-6 h-8 rounded slider-thumb border-deck-a/50 flex items-center justify-center cursor-ew-resize">
+<div class="w-1 h-4 bg-deck-a/80 rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- LED Meter A -->
+<div class="w-4 h-16 bg-surface-inset rounded border border-surface-raised p-0.5 flex flex-col-reverse gap-0.5 shadow-inner">
+<div class="w-full h-1/6 bg-[#39ff14] opacity-20 rounded-sm"></div>
+<div class="w-full h-1/6 bg-[#39ff14] opacity-20 rounded-sm"></div>
+<div class="w-full h-1/6 bg-[#39ff14] opacity-20 rounded-sm"></div>
+<div class="w-full h-1/6 bg-[#ffea00] opacity-20 rounded-sm"></div>
+<div class="w-full h-1/6 bg-[#ff4d4d] opacity-20 rounded-sm"></div>
+<div class="w-full h-1/6 bg-[#ff4d4d] opacity-20 rounded-sm"></div>
+</div>
+</div>
+<!-- Crossfader -->
+<div class="flex-[1.5] flex flex-col items-center px-12 border-x border-outline-variant/30 h-full justify-center">
+<div class="text-xs text-outline mb-4 uppercase tracking-[0.2em] font-bold">Crossfader</div>
+<div class="w-full flex items-center gap-4">
+<span class="text-xl font-black text-deck-a glow-deck-a-text">A</span>
+<div class="flex-1 h-4 slider-track relative rounded-full">
+<div class="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-deck-a/80 to-deck-b/80 rounded-full opacity-50"></div>
+<div class="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-8 h-10 bg-surface-raised border-2 border-outline-variant rounded flex items-center justify-center cursor-ew-resize shadow-xl hover:border-outline transition-colors">
+<div class="w-1 h-6 bg-outline rounded-full"></div>
+</div>
+</div>
+<span class="text-xl font-black text-deck-b glow-deck-b-text">B</span>
+</div>
+</div>
+<!-- Channel B Meter & Trim -->
+<div class="flex-1 flex items-center justify-start gap-6">
+<!-- LED Meter B -->
+<div class="w-4 h-16 bg-surface-inset rounded border border-surface-raised p-0.5 flex flex-col-reverse gap-0.5 shadow-inner">
+<div class="w-full h-1/6 bg-[#39ff14] opacity-20 rounded-sm"></div>
+<div class="w-full h-1/6 bg-[#39ff14] opacity-20 rounded-sm"></div>
+<div class="w-full h-1/6 bg-[#39ff14] opacity-20 rounded-sm"></div>
+<div class="w-full h-1/6 bg-[#ffea00] opacity-20 rounded-sm"></div>
+<div class="w-full h-1/6 bg-[#ff4d4d] opacity-20 rounded-sm"></div>
+<div class="w-full h-1/6 bg-[#ff4d4d] opacity-20 rounded-sm"></div>
+</div>
+<div class="flex flex-col items-center flex-1 max-w-[240px]">
+<div class="flex justify-between w-full text-xs text-outline mb-3 font-bold uppercase tracking-wider">
+<span>Trim B</span>
+<span class="text-deck-b font-stats-readout">0.0 dB</span>
+</div>
+<div class="w-full h-3 slider-track relative">
+<div class="absolute top-1/2 -translate-y-1/2 left-0 w-6 h-8 rounded slider-thumb border-deck-b/50 flex items-center justify-center cursor-ew-resize">
+<div class="w-1 h-4 bg-deck-b/80 rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer / Collapsible Library -->
+<footer class="fixed bottom-0 left-0 w-full z-50 bg-surface-container-highest border-t border-surface-raised flex flex-col shadow-[0_-4px_24px_rgba(0,0,0,0.5)]">
+<!-- Status Bar -->
+<div class="h-10 px-6 flex justify-between items-center text-xs text-outline border-b border-surface-raised bg-surface-container-low font-semibold tracking-wide">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2 text-alert-critical bg-alert-critical/10 px-2 py-1 rounded">
+<span class="w-2 h-2 rounded-full bg-alert-critical shadow-[0_0_8px_rgba(255,77,77,0.8)]"></span>
+<span class="uppercase tracking-widest font-bold text-[10px]">REC</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="opacity-60 uppercase tracking-widest text-[10px]">Audio Routing</span>
+<span class="border border-outline-variant px-2 py-0.5 rounded text-[10px] hover:bg-surface-raised cursor-pointer">CUE A</span>
+<span class="border border-outline-variant px-2 py-0.5 rounded text-[10px] hover:bg-surface-raised cursor-pointer">CUE B</span>
+</div>
+</div>
+<div class="flex items-center gap-6 font-stats-readout text-[11px]">
+<span>Master: <span class="text-deck-a font-bold text-sm">80%</span></span>
+<span>Crossfader: <span class="text-on-surface font-bold text-sm">0.50</span></span>
+<span>Curve: <span class="text-on-surface">constant_power</span></span>
+<span>Engine: <span class="text-active-sync glow-sync">Running</span></span>
+</div>
+</div>
+<!-- Library Drawer Header (Collapsed) -->
+<div class="h-14 px-6 flex justify-between items-center bg-surface-container">
+<div class="flex items-center gap-3 text-on-surface cursor-pointer hover:text-deck-a transition-colors">
+<span class="material-symbols-outlined text-[24px]">library_music</span>
+<span class="font-bold text-lg tracking-wide">Library</span>
+<span class="text-sm text-outline font-stats-readout bg-surface-inset px-2 py-0.5 rounded ml-2">0 tracks</span>
+</div>
+<div class="text-sm text-outline/60 italic font-medium">
+            No tracks imported yet. Click "Import" to add audio files.
+        </div>
+<button class="btn-small !py-2 !px-4 border-primary/30 text-primary hover:border-primary hover:text-primary-fixed flex items-center gap-2 text-sm">
+<span class="material-symbols-outlined text-[18px]">add</span> Import
+        </button>
+</div>
+</footer>
+</body></html>

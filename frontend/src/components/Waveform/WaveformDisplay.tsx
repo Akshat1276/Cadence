@@ -1,9 +1,6 @@
 /**
  * Cadence DJ System — Waveform Display
- *
- * Canvas-based waveform visualization that renders peak data
- * from the backend. Supports click-to-seek and a playhead indicator.
- * No external library needed — pure Canvas API.
+ * Elite Performance Console Style — Recessed waveform well with playhead
  */
 
 import { useRef, useEffect, useCallback, useState } from "react";
@@ -25,7 +22,7 @@ export function WaveformDisplay({
 }: WaveformDisplayProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [waveform, setWaveform] = useState<WaveformData | null>(null);
-  const [zoom, setZoom] = useState(1); // 1 = full overview
+  const [zoom, setZoom] = useState(1);
   const loadedTrackRef = useRef<string>("");
 
   // Fetch waveform when track changes
@@ -64,15 +61,13 @@ export function WaveformDisplay({
     const h = rect.height;
     const centerY = h / 2;
 
-    // Clear
+    // Clear — deep black recessed background
     ctx.clearRect(0, 0, w, h);
-
-    // Background
-    ctx.fillStyle = "#0d0d15";
+    ctx.fillStyle = "#000000";
     ctx.fillRect(0, 0, w, h);
 
     // Center line
-    ctx.strokeStyle = "#1e1e2e";
+    ctx.strokeStyle = "#1c1b1d";
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(0, centerY);
@@ -80,11 +75,6 @@ export function WaveformDisplay({
     ctx.stroke();
 
     if (!waveform || waveform.length === 0) {
-      // Empty state
-      ctx.fillStyle = "#3a3a55";
-      ctx.font = "11px Inter, sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText("No waveform data", w / 2, centerY + 4);
       return;
     }
 
@@ -101,35 +91,27 @@ export function WaveformDisplay({
       const peakPos = peaks_positive[i];
       const peakNeg = peaks_negative[i];
 
-      // Determine color: played portion vs upcoming
       const barProgress = i / numPeaks;
       const isPlayed = barProgress < position / duration;
 
-      if (isPlayed) {
-        ctx.fillStyle = accentColor;
-        ctx.globalAlpha = 0.8;
-      } else {
-        ctx.fillStyle = accentColor;
-        ctx.globalAlpha = 0.3;
-      }
+      ctx.fillStyle = accentColor;
+      ctx.globalAlpha = isPlayed ? 0.85 : 0.3;
 
-      // Positive peaks (above center)
       const posHeight = peakPos * (centerY - 2);
       ctx.fillRect(x, centerY - posHeight, Math.max(barWidth - 0.5, 0.5), posHeight);
 
-      // Negative peaks (below center)
       const negHeight = Math.abs(peakNeg) * (centerY - 2);
       ctx.fillRect(x, centerY, Math.max(barWidth - 0.5, 0.5), negHeight);
     }
 
     ctx.globalAlpha = 1.0;
 
-    // Playhead line
+    // Playhead line with glow
     if (status && status.state !== "empty") {
       ctx.strokeStyle = "#ffffff";
       ctx.lineWidth = 2;
       ctx.shadowColor = accentColor;
-      ctx.shadowBlur = 6;
+      ctx.shadowBlur = 8;
       ctx.beginPath();
       ctx.moveTo(playheadX, 0);
       ctx.lineTo(playheadX, h);
@@ -138,12 +120,8 @@ export function WaveformDisplay({
     }
   }, [waveform, status?.position, status?.duration, status?.state, accentColor]);
 
-  // Redraw on every state change
-  useEffect(() => {
-    draw();
-  }, [draw]);
+  useEffect(() => { draw(); }, [draw]);
 
-  // Resize observer
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -168,42 +146,55 @@ export function WaveformDisplay({
   };
 
   return (
-    <div className="flex flex-col gap-1">
-      <div className="flex items-center justify-between">
-        <span className="text-[10px] text-text-muted uppercase tracking-wider font-semibold">
-          Waveform
-        </span>
-        {/* Zoom controls */}
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setZoom(Math.max(1, zoom / 2))}
-            className="text-[10px] px-1.5 py-0.5 rounded bg-bg-control border border-border
-                       text-text-muted hover:text-text-primary hover:border-border-active
-                       transition-all disabled:opacity-30"
-            disabled={zoom <= 1}
-          >
-            −
-          </button>
-          <span className="text-[10px] font-mono text-text-muted w-6 text-center">
-            {zoom}x
-          </span>
-          <button
-            onClick={() => setZoom(Math.min(16, zoom * 2))}
-            className="text-[10px] px-1.5 py-0.5 rounded bg-bg-control border border-border
-                       text-text-muted hover:text-text-primary hover:border-border-active
-                       transition-all disabled:opacity-30"
-            disabled={zoom >= 16}
-          >
-            +
-          </button>
-        </div>
+    <div className="h-28 bg-surface-inset relative flex items-center justify-center overflow-hidden border-b border-surface-raised shadow-inner">
+      {/* Label */}
+      <div className="absolute top-2 left-4 text-xs text-outline uppercase tracking-widest font-bold z-10">
+        Waveform
       </div>
+
+      {/* Zoom controls */}
+      <div className="absolute top-2 right-4 flex gap-1.5 z-10 bg-surface-container/80 backdrop-blur rounded p-1">
+        <button
+          onClick={() => setZoom(Math.max(1, zoom / 2))}
+          className="w-6 h-6 rounded bg-surface hover:bg-surface-raised text-outline hover:text-white
+                     flex items-center justify-center font-bold text-lg leading-none"
+          disabled={zoom <= 1}
+        >
+          -
+        </button>
+        <span className="text-on-surface text-xs font-mono flex items-center px-1">{zoom}x</span>
+        <button
+          onClick={() => setZoom(Math.min(16, zoom * 2))}
+          className="w-6 h-6 rounded bg-surface hover:bg-surface-raised text-outline hover:text-white
+                     flex items-center justify-center font-bold text-lg leading-none"
+          disabled={zoom >= 16}
+        >
+          +
+        </button>
+      </div>
+
+      {/* Center playhead indicator */}
+      <div
+        className="absolute inset-0 flex items-center justify-center opacity-30 pointer-events-none"
+        style={{
+          background: `linear-gradient(90deg, transparent 49%, ${accentColor} 50%, transparent 51%)`,
+        }}
+      />
+
+      {/* Canvas */}
       <canvas
         ref={canvasRef}
         onClick={handleClick}
-        className="w-full h-16 rounded-lg cursor-crosshair"
+        className="absolute inset-0 w-full h-full cursor-crosshair"
         style={{ display: "block" }}
       />
+
+      {/* Empty state overlay */}
+      {(!waveform || waveform.length === 0) && (
+        <span className="text-outline/40 text-sm uppercase tracking-widest font-semibold z-10 pointer-events-none">
+          No waveform data
+        </span>
+      )}
     </div>
   );
 }
