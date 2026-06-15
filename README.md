@@ -1,4 +1,4 @@
-<![CDATA[# 🎛️ Cadence — Real-Time DJ Mixing & Audio Processing System
+# 🎛️ Cadence — Real-Time DJ Mixing & Audio Processing System
 
 <div align="center">
 
@@ -432,4 +432,3 @@ This project was built as part of the **GDSC Open Source Project** initiative.
 <div align="center">
   <strong>Built with 🎵 by the Cadence team</strong>
 </div>
-]]>
