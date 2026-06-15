@@ -8,3 +8,4 @@ scipy>=1.14.0
 mutagen>=1.47.0
 websockets>=15.0
 aiofiles>=24.1.0
+soundfile>=0.12.0

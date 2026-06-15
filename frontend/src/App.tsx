@@ -12,6 +12,7 @@ import { MasterControls } from "./components/Mixer/MasterControls";
 import { PlaybackInfo } from "./components/Monitor/PlaybackInfo";
 import { TrackList } from "./components/Library/TrackList";
 import { PeakMeter } from "./components/Meter/PeakMeter";
+import { RecordingPanel } from "./components/Recording/RecordingPanel";
 
 export default function App() {
   const { state, error, connected, refresh } = useEngineState();
@@ -134,6 +135,12 @@ export default function App() {
             height={80}
           />
         </div>
+
+        {/* ─── Recording ───────────────────────────────── */}
+        <RecordingPanel
+          recording={state?.recording ?? null}
+          onAction={refresh}
+        />
 
         {/* ─── Track Library ─────────────────────────── */}
         <TrackList engineState={state} onAction={refresh} />
