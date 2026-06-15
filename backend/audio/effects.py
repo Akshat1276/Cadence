@@ -55,20 +55,26 @@ class Filter:
             return audio
 
         output = np.empty_like(audio, dtype=np.float64)
+        
+        # Grab local references to avoid thread race conditions with API updates
+        current_state = self._state
+        sos = self._sos
+        
+        if current_state is None or len(current_state) != audio.shape[1]:
+            current_state = [None] * audio.shape[1]
+            
         for ch in range(audio.shape[1]):
-            if self._state is None:
-                zi = np.zeros((self._sos.shape[0], 2), dtype=np.float64)
-            else:
-                zi = self._state[ch] if ch < len(self._state) else np.zeros(
-                    (self._sos.shape[0], 2), dtype=np.float64)
+            zi = current_state[ch]
+            if zi is None or zi.shape[0] != sos.shape[0]:
+                zi = np.zeros((sos.shape[0], 2), dtype=np.float64)
 
             filtered, new_state = sosfilt(
-                self._sos, audio[:, ch].astype(np.float64), zi=zi)
+                sos, audio[:, ch].astype(np.float64), zi=zi)
             output[:, ch] = filtered
 
-            if self._state is None:
-                self._state = [None] * audio.shape[1]
-            self._state[ch] = new_state
+            current_state[ch] = new_state
+            
+        self._state = current_state
 
         return output.astype(np.float32)
 

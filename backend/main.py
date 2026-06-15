@@ -6,6 +6,11 @@ and starts the audio engine on startup.
 """
 
 import os
+import sys
+
+# Add current directory to PATH so audioread can find ffmpeg.exe
+os.environ["PATH"] += os.pathsep + os.getcwd()
+
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
