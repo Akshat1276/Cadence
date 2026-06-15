@@ -151,12 +151,36 @@ export interface RecordingInfo {
   duration: number;
 }
 
+export interface SpectrumState {
+  bands: number[];
+  peak_freq: number;
+}
+
+export interface RoutingState {
+  master_device_id: number | null;
+  cue_device_id: number | null;
+  cue_enabled: boolean;
+  cue_deck_a: boolean;
+  cue_deck_b: boolean;
+  cue_volume: number;
+}
+
+export interface AudioDevice {
+  id: number;
+  name: string;
+  channels: number;
+  sample_rate: number;
+  is_default: boolean;
+}
+
 export interface EngineState {
   deck_a: DeckStatus;
   deck_b: DeckStatus;
   mixer: MixerState;
   levels: LevelsState;
+  spectrum: SpectrumState;
   recording: RecordingState;
+  routing: RoutingState;
   running: boolean;
 }
 
@@ -470,6 +494,41 @@ export async function exportRecording(
 
 export async function deleteRecording(filename: string): Promise<void> {
   await api.delete(`/recording/${filename}`);
+}
+
+// ─── Device & Routing API ──────────────────────────────
+
+export async function listDevices(): Promise<AudioDevice[]> {
+  const res = await api.get("/devices");
+  return res.data.devices;
+}
+
+export async function setMasterDevice(
+  deviceId: number | null
+): Promise<RoutingState> {
+  const res = await api.post("/devices/master", { device_id: deviceId });
+  return res.data.routing;
+}
+
+export async function setCueDevice(
+  deviceId: number | null
+): Promise<RoutingState> {
+  const res = await api.post("/devices/cue", { device_id: deviceId });
+  return res.data.routing;
+}
+
+export async function toggleDeckCue(
+  deckId: string
+): Promise<RoutingState> {
+  const res = await api.post(`/deck/${deckId}/cue/toggle`);
+  return res.data.routing;
+}
+
+export async function setCueVolume(
+  volume: number
+): Promise<RoutingState> {
+  const res = await api.post("/cue/volume", { volume });
+  return res.data.routing;
 }
 
 // ─── Engine API ────────────────────────────────────────
